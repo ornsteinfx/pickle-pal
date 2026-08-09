@@ -77,9 +77,11 @@ const ids = [
   "st-wins",
   "st-losses",
   "st-points",
-  "ow-coins",
-  "ow-trophies",
-  "ow-wins",
+  "st-rank",
+  "trophy-case",
+  "daily-btn",
+  "daily-status",
+  "ow-rank",
   "ow-stage",
   "ow-canvas",
   "ow-hint",
@@ -381,6 +383,76 @@ try {
   if ($("season-modal").style.display !== 'none') throw new Error('setSeason did not close modal');
   setSeason(origSeason);
   if (SAVE.season !== origSeason) throw new Error('setSeason restore failed');
+
+  // ---- music engine: all seasons tick without crashing ----
+  const allSeasons = Object.keys(SEASONS);
+  for (const sid of allSeasons) {
+    Object.assign(SEASON, SEASONS[sid]);
+    MUS.step = 0;
+    for (let i = 0; i < 18; i++) musicTick();
+  }
+  Object.assign(SEASON, SEASONS[origSeason]);
+
+  // ---- winter decor ----
+  setSeason('winter');
+  if (!OW.lights || !OW.lights.length) throw new Error('no winter lights');
+  const wctx = document.createElement('canvas').getContext('2d');
+  for (const s of [2, 3, 6, 9]) seasonTile(wctx, 0, 0, 32, s, SEASON);
+  setSeason(origSeason);
+  if (OW.lights.length) throw new Error('lights persist after season switch');
+
+  // ---- rank ----
+  SAVE.stats.wins = 5;
+  if (rankInfo().name !== 'SLICKER') throw new Error('rank 5 not SLICKER');
+  SAVE.stats.wins = 30;
+  if (rankInfo().name !== 'ACE') throw new Error('rank 30 not ACE');
+  SAVE.stats.wins = 50;
+  if (rankInfo().name !== 'LEGEND') throw new Error('rank 50 not LEGEND');
+  SAVE.stats.wins = 0;
+  if (rankInfo().name !== 'ROOKIE') throw new Error('rank reset failed');
+  const rkCoins = SAVE.coins;
+  SAVE.stats.wins = 5;
+  endGame(true);
+  if (SAVE.coins !== rkCoins + Math.round(25 * 1.25)) throw new Error('rank multiplier not applied');
+  SAVE.stats.wins = 0;
+
+  // ---- quests ----
+  SAVE.quests = {};
+  const qk = SEASON.id;
+  const qQ = QUEST_LIST[qk];
+  const qq = questState(qk);
+  qq.win = qQ.win;
+  qq.dbl = qQ.dbl;
+  qq.qz = qQ.qz;
+  const qc = SAVE.coins;
+  checkQuests();
+  if (!qq.star) throw new Error('checkQuests did not award star');
+  if (SAVE.coins !== qc + 150) throw new Error('star coins wrong');
+  checkQuests();
+  if (SAVE.coins !== qc + 150) throw new Error('star awarded twice');
+  renderTrophyCase();
+  if (!$('trophy-case').children.length) throw new Error('trophy case empty');
+
+  // ---- boss ----
+  startBoss(qk);
+  if (!R.boss) throw new Error('startBoss did not set boss');
+  if (R.target !== 15) throw new Error('boss target wrong');
+  if (R.cpuSpd < 0.5) throw new Error('boss not harder');
+
+  // ---- daily ----
+  SAVE.daily = { n: 0, last: "" };
+  awardDaily();
+  if (SAVE.daily.n !== 1) throw new Error('daily streak not 1');
+  awardDaily();
+  if (SAVE.daily.n !== 1) throw new Error('daily double count');
+  if (SAVE.daily.last !== todayKey()) throw new Error('daily last not today');
+  renderDaily();
+  if (!$('daily-btn').disabled) throw new Error('daily btn not disabled after clear');
+
+  // ---- settings render ----
+  show('s-settings');
+  renderSettings();
+  if (!$('st-rank').textContent) throw new Error('settings rank missing');
 
   resetSave();
   console.log('ALL FLOWS OK');

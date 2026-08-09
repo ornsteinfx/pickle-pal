@@ -609,6 +609,38 @@
         background: var(--yellow);
       }
 
+      /* ---------- TROPHY CASE ---------- */
+      .trophy-card {
+        background: var(--cream2);
+        border: 3px solid var(--ink-dark);
+        box-shadow:
+          3px 3px 0 rgba(0, 0, 0, 0.5),
+          inset 0 0 0 2px #fff;
+        padding: 12px 14px;
+        margin-bottom: 10px;
+      }
+      .trophy-card .tc-head {
+        font-size: 12px;
+        color: var(--ink);
+        margin-bottom: 6px;
+      }
+      .trophy-card .tc-head .ic {
+        font-size: 15px;
+      }
+      .trophy-card .tc-meta {
+        font-size: 8px;
+        color: #7a6f5c;
+        line-height: 1.9;
+      }
+      .trophy-card .tc-meta.dim {
+        color: #a89a7a;
+      }
+      .trophy-card .tc-btn {
+        margin-top: 10px;
+        padding: 9px 12px;
+        font-size: 9px;
+      }
+
       /* ---------- LESSON / QUIZ / CARDS ---------- */
       .card {
         background: var(--cream2);
@@ -986,7 +1018,7 @@
           <div id="ow-hud">
             <span id="ow-season" onclick="event.stopPropagation(); openSeason()">--</span> SEASON<br />
             <span id="ow-coins" class="coin-line">0</span> COINS<br /><span id="ow-trophies">0</span>
-            TROPHIES<br /><span id="ow-wins">0</span> WINS
+            TROPHIES<br /><span id="ow-wins">0</span> WINS<br /><span id="ow-rank">ROOKIE</span> RANK
           </div>
           <canvas id="ow-canvas" width="1280" height="768"></canvas>
           <div id="ow-hint">
@@ -1033,7 +1065,15 @@
             <div class="chip">MATCH WINS<br /><span class="v" id="st-wins">0</span></div>
             <div class="chip">MATCH LOSSES<br /><span class="v" id="st-losses">0</span></div>
             <div class="chip">RALLIES WON<br /><span class="v" id="st-points">0</span></div>
+            <div class="chip">RANK<br /><span class="v" id="st-rank">ROOKIE</span></div>
           </div>
+          <div class="text-small text-dim" style="line-height: 2; margin-bottom: 12px">
+            RANK CLIMBS WITH WINS - HIGHER RANK PAYS OUT MORE COINS.
+          </div>
+          <div class="text-big" style="margin-bottom: 10px">SEASON HALL OF FAME</div>
+          <div id="trophy-case" style="margin-bottom: 16px"></div>
+          <button class="btn yellow" id="daily-btn" onclick="startDaily()">DAILY CHALLENGE</button>
+          <div class="text-small text-dim" id="daily-status" style="line-height: 2; margin: 8px 0 16px"></div>
           <div class="stack">
             <button class="btn yellow" onclick="openShop()">PADDLE SHOP</button>
             <button class="btn" id="sound-btn" onclick="toggleSound()">SOUND: ON</button>
@@ -1228,11 +1268,13 @@
         },
         name: "YOU",
         mastery: {},
-        stats: { wins: 0, losses: 0, points: 0, trophies: 0 },
+        stats: { wins: 0, losses: 0, points: 0, trophies: 0, longestRally: 0 },
         coins: 0,
         owned: ["#ffd23d"],
         sound: true,
         season: "",
+        quests: {},
+        daily: { n: 0, last: "" },
       }
       let SAVE = load()
 
@@ -1313,27 +1355,64 @@
         lose: () => [330, 262, 196, 147].forEach((f, i) => tone(f, 0.22, "sawtooth", 0.05, i * 0.16)),
       }
 
-      const BASS_LINE = [131, 196, 165, 220, 131, 196, 147, 220]
-      const ARP_LINE = [262, 330, 392, 440, 262, 330, 392, 494]
       const MUS = { timer: null, step: 0, booted: false }
+      function kick() {
+        if (!SAVE.sound) return
+        try {
+          const ctx = ac()
+          const o = ctx.createOscillator()
+          const v = ctx.createGain()
+          o.type = "sine"
+          const t = ctx.currentTime
+          o.frequency.setValueAtTime(120, t)
+          o.frequency.exponentialRampToValueAtTime(46, t + 0.14)
+          v.gain.setValueAtTime(0.0001, t)
+          v.gain.linearRampToValueAtTime(0.05, t + 0.01)
+          v.gain.exponentialRampToValueAtTime(0.0001, t + 0.18)
+          o.connect(v)
+          v.connect(ctx.destination)
+          o.start(t)
+          o.stop(t + 0.22)
+        } catch (e) {}
+      }
+      function hat() {
+        if (!SAVE.sound) return
+        try {
+          const ctx = ac()
+          const o = ctx.createOscillator()
+          const v = ctx.createGain()
+          o.type = "triangle"
+          const t = ctx.currentTime
+          o.frequency.value = 3800
+          v.gain.setValueAtTime(0.0001, t)
+          v.gain.linearRampToValueAtTime(0.008, t + 0.004)
+          v.gain.exponentialRampToValueAtTime(0.0001, t + 0.04)
+          o.connect(v)
+          v.connect(ctx.destination)
+          o.start(t)
+          o.stop(t + 0.06)
+        } catch (e) {}
+      }
       function musicTick() {
         if (!SAVE.sound) return musicStop()
         const s = MUS.step
         const M = SEASON.music
         const n = M.bass.length
         const b = M.bass[s % n]
-        const a = M.arp[s % n]
         const l = M.lead[s % n]
-        tone(b, 0.24, "triangle", 0.05)
-        if (s % 2 === 0) {
-          tone(a, 0.1, "square", 0.018)
-          tone(l, 0.1, M.leadType, 0.02)
+        if (M.kick && s % M.kick === 0) kick()
+        if (M.hat && s % 2 === 1) hat()
+        if (b) tone(b, 0.3, "sine", 0.038)
+        if (s % 2 === 0 && M.pad) tone(M.pad[(s >> 1) % M.pad.length] * 2, 0.42, "triangle", 0.007)
+        if (l) {
+          if (M.bells) {
+            tone(l * 2, 0.32, "triangle", 0.02)
+            tone(l * 2.5, 0.2, "sine", 0.006, 0.02)
+          } else {
+            const lg = M.leadType === "sawtooth" ? 0.016 : 0.022
+            tone(l, 0.26, M.leadType, lg)
+          }
         }
-        if (s % 8 === 0) {
-          tone(b * 2, 0.12, "triangle", 0.02)
-          tone(988, 0.035, "square", 0.008)
-        }
-        if (s % 8 === 4) tone(1046, 0.035, "square", 0.008)
         MUS.step = (MUS.step + 1) % n
       }
       function musicStart() {
@@ -1389,11 +1468,14 @@
           roofs: ["#2f9bd6", "#ff5f4e", "#ffd23d", "#1fd07a", "#9a5fe0", "#ff8a2e"],
           ball: null,
           music: {
-            bpm: 176,
-            bass: [131, 196, 165, 220, 131, 196, 147, 220, 131, 196, 165, 262, 131, 196, 147, 220],
-            arp: [262, 330, 392, 440, 523, 440, 392, 330, 262, 330, 392, 440, 523, 587, 659, 587],
-            lead: [523, 659, 784, 659, 523, 587, 659, 784, 880, 784, 659, 587, 523, 587, 659, 523],
-            leadType: "square",
+            bpm: 132,
+            bass: [65, 65, 98, 98, 87, 87, 98, 98, 65, 65, 98, 98, 110, 110, 98, 98],
+            pad: [65, 87, 98, 110],
+            lead: [523, 587, 659, 587, 784, 659, 587, 523, 440, 523, 587, 523, 659, 587, 523, 440],
+            leadType: "triangle",
+            kick: 4,
+            hat: true,
+            bells: false,
           },
           team: {
             pal: { hair: "#2b2b33", shirt: "#ff8a2e", shorts: "#1f9bd6" },
@@ -1459,11 +1541,14 @@
           roofs: ["#e8781f", "#7a4aa0", "#c0481a", "#2f9bd6", "#ffcf3d", "#4f9e3f"],
           ball: null,
           music: {
-            bpm: 148,
-            bass: [98, 131, 110, 147, 98, 131, 87, 147, 98, 131, 110, 165, 98, 131, 110, 147],
-            arp: [196, 233, 262, 294, 262, 233, 196, 175, 196, 233, 262, 294, 311, 294, 262, 233],
-            lead: [392, 330, 311, 262, 311, 330, 392, 523, 494, 392, 330, 311, 262, 330, 392, 330],
+            bpm: 112,
+            bass: [55, 55, 55, 55, 110, 110, 110, 110, 82, 82, 82, 82, 131, 131, 123, 123],
+            pad: [55, 82, 65, 82],
+            lead: [440, 415, 440, 523, 440, 415, 0, 349, 330, 0, 415, 440, 523, 494, 466, 0],
             leadType: "sawtooth",
+            kick: 0,
+            hat: false,
+            bells: false,
           },
           team: {
             pal: { hair: "#2b2b33", shirt: "#c0481a", shorts: "#5a3a1e" },
@@ -1523,11 +1608,14 @@
           roofs: ["#e05d8a", "#e8a53a", "#9a5fd6", "#5a9ed6", "#e84848", "#3fb98a"],
           ball: null,
           music: {
-            bpm: 168,
-            bass: [110, 165, 131, 196, 110, 165, 147, 220, 110, 165, 131, 196, 110, 165, 147, 220],
-            arp: [220, 262, 330, 392, 330, 262, 220, 196, 220, 262, 330, 392, 440, 392, 330, 262],
-            lead: [440, 392, 330, 392, 440, 523, 440, 392, 330, 392, 330, 262, 330, 392, 440, 392],
-            leadType: "square",
+            bpm: 124,
+            bass: [65, 65, 87, 87, 65, 65, 98, 98, 82, 82, 98, 98, 65, 65, 87, 87],
+            pad: [65, 65, 82, 98],
+            lead: [523, 587, 659, 784, 659, 587, 523, 587, 659, 523, 440, 392, 440, 523, 587, 523],
+            leadType: "triangle",
+            kick: 4,
+            hat: true,
+            bells: false,
           },
           team: {
             pal: { hair: "#2b2b33", shirt: "#e05d8a", shorts: "#7a2a4a" },
@@ -1587,11 +1675,14 @@
           roofs: ["#e84848", "#3fb9d6", "#ffd23d", "#3fd6a5", "#8a5fd6", "#ff7a2e"],
           ball: { dark: "#8fb3c9", base: "#f4f9ff", shade: "#cfe4f0", hi: "#ffffff" },
           music: {
-            bpm: 140,
-            bass: [110, 131, 98, 147, 110, 131, 98, 165, 110, 131, 98, 147, 110, 131, 98, 165],
-            arp: [220, 262, 330, 392, 440, 392, 330, 262, 220, 262, 330, 392, 523, 392, 330, 262],
-            lead: [523, 587, 659, 523, 587, 659, 784, 659, 587, 523, 440, 392, 440, 392, 330, 392],
+            bpm: 132,
+            bass: [98, 98, 98, 98, 110, 110, 110, 110, 131, 131, 131, 131, 98, 98, 98, 98],
+            pad: [98, 131, 165, 98],
+            lead: [659, 659, 659, 0, 659, 659, 659, 0, 659, 784, 523, 587, 659, 0, 698, 698],
             leadType: "triangle",
+            kick: 4,
+            hat: true,
+            bells: true,
           },
           team: {
             pal: { hair: "#2b2b33", shirt: "#e84848", shorts: "#8a2a2a" },
@@ -1651,11 +1742,14 @@
           roofs: ["#3fb97f", "#e05d8a", "#ffd23d", "#5a9fd6", "#9a5fd6", "#ff8a2e"],
           ball: null,
           music: {
-            bpm: 172,
-            bass: [131, 165, 147, 196, 131, 165, 175, 220, 131, 165, 147, 196, 131, 165, 175, 220],
-            arp: [262, 330, 392, 523, 392, 330, 262, 330, 262, 330, 392, 523, 659, 523, 392, 330],
-            lead: [523, 659, 784, 659, 523, 784, 659, 523, 659, 784, 880, 784, 659, 523, 587, 659],
-            leadType: "square",
+            bpm: 128,
+            bass: [98, 98, 98, 98, 82, 82, 82, 82, 73, 73, 73, 73, 98, 98, 98, 98],
+            pad: [98, 82, 73, 98],
+            lead: [587, 659, 784, 659, 587, 659, 784, 880, 784, 659, 587, 659, 523, 587, 659, 784],
+            leadType: "triangle",
+            kick: 4,
+            hat: true,
+            bells: false,
           },
           team: {
             pal: { hair: "#2b2b33", shirt: "#e05d8a", shorts: "#7a2a4a" },
@@ -1715,11 +1809,14 @@
           roofs: ["#ff3cc8", "#3fffd0", "#ffe23d", "#3f9ff0", "#7ae7ff", "#ff7a2e"],
           ball: { dark: "#3a0a2e", base: "#ff3cc8", shade: "#c9289f", hi: "#ffe23d" },
           music: {
-            bpm: 184,
-            bass: [98, 131, 110, 147, 98, 131, 110, 165, 98, 131, 110, 147, 98, 131, 110, 165],
-            arp: [196, 233, 262, 311, 262, 233, 196, 175, 196, 233, 262, 311, 349, 311, 262, 233],
-            lead: [392, 523, 659, 523, 392, 330, 392, 523, 659, 784, 659, 523, 392, 330, 262, 330],
+            bpm: 118,
+            bass: [55, 55, 55, 55, 55, 55, 55, 55, 49, 49, 49, 49, 49, 49, 49, 49],
+            pad: [55, 55, 49, 49],
+            lead: [440, 0, 440, 0, 587, 0, 587, 0, 392, 0, 392, 0, 523, 0, 587, 0],
             leadType: "sawtooth",
+            kick: 4,
+            hat: true,
+            bells: false,
           },
           team: {
             pal: { hair: "#12081f", shirt: "#3fffd0", shorts: "#1a0c36" },
@@ -1779,11 +1876,14 @@
           roofs: ["#8a6fe0", "#3fc7d6", "#ff5f8a", "#ffd23d", "#3fd6a5", "#6f9ff0"],
           ball: { dark: "#1c1c3a", base: "#8a6fe0", shade: "#6a4cc0", hi: "#ffffff" },
           music: {
-            bpm: 120,
-            bass: [87, 98, 73, 110, 87, 98, 73, 131, 87, 98, 73, 110, 87, 98, 73, 131],
-            arp: [175, 196, 220, 262, 220, 196, 175, 147, 175, 196, 220, 262, 294, 262, 220, 196],
-            lead: [392, 523, 659, 523, 392, 330, 392, 523, 659, 784, 659, 523, 392, 330, 262, 330],
+            bpm: 84,
+            bass: [55, 0, 55, 0, 49, 0, 55, 0, 41, 0, 41, 0, 49, 0, 55, 0],
+            pad: [55, 49, 41, 49],
+            lead: [220, 0, 0, 0, 330, 0, 0, 0, 262, 0, 0, 0, 330, 0, 0, 0],
             leadType: "sine",
+            kick: 0,
+            hat: false,
+            bells: false,
           },
           team: {
             pal: { hair: "#3a3a6a", shirt: "#6f9ff0", shorts: "#1a2a5a" },
@@ -1857,6 +1957,136 @@
         }
         renderSeasonGrid()
         closeSeason()
+      }
+
+      /* ================= QUESTS / RANK / DAILY ================= */
+
+      const QUEST_LIST = {
+        summer: { name: "POOL PARTY", win: 3, dbl: 2, qz: 20, rival: "SHARK SHUFFLE DUO" },
+        fall: { name: "HARVEST", win: 3, dbl: 2, qz: 20, rival: "PUMPKIN PHANTOM" },
+        sakura: { name: "BLOOM", win: 3, dbl: 2, qz: 20, rival: "PETAL PERIL" },
+        winter: { name: "FROST", win: 3, dbl: 2, qz: 20, rival: "THE YETI TWINS" },
+        spring: { name: "SPROUT", win: 3, dbl: 2, qz: 20, rival: "BLOOM BRIGADE" },
+        retro: { name: "ARCADE", win: 3, dbl: 2, qz: 20, rival: "NEON NIGHTMARES" },
+        galaxy: { name: "STARDUST", win: 3, dbl: 2, qz: 20, rival: "COSMO RANGERS" },
+      }
+
+      function questState(id) {
+        const k = id || SEASON.id
+        return (SAVE.quests[k] = SAVE.quests[k] || { win: 0, dbl: 0, qz: 0, star: false, boss: false })
+      }
+      function questsDone(q, Q) {
+        return q.win >= Q.win && q.dbl >= Q.dbl && q.qz >= Q.qz
+      }
+      function checkQuests() {
+        const k = SEASON.id
+        const q = questState(k)
+        const Q = QUEST_LIST[k]
+        if (!Q || q.star || !questsDone(q, Q)) return
+        q.star = true
+        SAVE.coins += 150
+        save()
+        toast("\u2605 " + SEASONS[k].name + " STAR EARNED! +150 COINS. BOSS RIVAL UNLOCKED!")
+        SFX.win()
+      }
+
+      function rankInfo() {
+        const w = SAVE.stats.wins
+        if (w >= 50) return { name: "LEGEND", mult: 3, next: null }
+        if (w >= 30) return { name: "ACE", mult: 2, next: 50 }
+        if (w >= 15) return { name: "BLITZER", mult: 1.5, next: 30 }
+        if (w >= 5) return { name: "SLICKER", mult: 1.25, next: 15 }
+        return { name: "ROOKIE", mult: 1, next: 5 }
+      }
+
+      function todayKey() {
+        const d = new Date()
+        return (
+          d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0")
+        )
+      }
+      function yesterdayKey() {
+        const d = new Date(Date.now() - 864e5)
+        return (
+          d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0")
+        )
+      }
+      function mulberry32(seed) {
+        let a = seed >>> 0
+        return function () {
+          a |= 0
+          a = (a + 0x6d2b79f5) | 0
+          let t = Math.imul(a ^ (a >>> 15), 1 | a)
+          t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t
+          return ((t ^ (t >>> 14)) >>> 0) / 4294967296
+        }
+      }
+      function dailySeed() {
+        const d = new Date()
+        return (d.getFullYear() * 10000 + (d.getMonth() + 1) * 100 + d.getDate()) | 0
+      }
+      function dailyEligible() {
+        return SAVE.daily.last !== todayKey()
+      }
+      function awardDaily() {
+        if (!dailyEligible()) return
+        if (SAVE.daily.last !== yesterdayKey()) SAVE.daily.n = 0
+        SAVE.daily.n++
+        SAVE.daily.last = todayKey()
+        SAVE.coins += 50
+        save()
+        toast("DAILY CHALLENGE CLEARED! +50 COINS. STREAK x" + SAVE.daily.n)
+        SFX.win()
+      }
+      function renderDaily() {
+        const done = !dailyEligible()
+        const btn = $("daily-btn")
+        if (btn) {
+          btn.disabled = done
+          btn.textContent = done ? "DAILY DONE - COME BACK TOMORROW" : "DAILY CHALLENGE - WIN BONUS COINS"
+        }
+        const st = $("daily-status")
+        if (st) st.textContent = "STREAK: " + SAVE.daily.n + (done ? "" : "  -  WIN TODAY'S MATCH TO KEEP IT ALIVE")
+      }
+      function renderTrophyCase() {
+        const box = $("trophy-case")
+        if (!box) return
+        box.innerHTML = ""
+        for (const k of _keys) {
+          const S = SEASONS[k]
+          const q = SAVE.quests[k] || { win: 0, dbl: 0, qz: 0, star: false, boss: false }
+          const Q = QUEST_LIST[k]
+          const done = questsDone(q, Q)
+          const card = document.createElement("div")
+          card.className = "trophy-card"
+          card.innerHTML =
+            "<div class='tc-head'><span class='ic'>" +
+            S.icon +
+            "</span> " +
+            S.name +
+            "</div>" +
+            "<div class='tc-meta'>" +
+            (q.star
+              ? "\u2605 SEASON STAR"
+              : "QUESTS " + (q.win >= Q.win ? 1 : 0) + (q.dbl >= Q.dbl ? 1 : 0) + (q.qz >= Q.qz ? 1 : 0) + "/3") +
+            "</div>" +
+            "<div class='tc-meta dim'>" +
+            (q.star && !q.boss
+              ? "BOSS: " + Q.rival
+              : q.boss
+                ? "\u2694 BOSS SLAIN"
+                : "WINS " + q.win + "/" + Q.win + " DOUBLES " + q.dbl + "/" + Q.dbl + " QUIZ " + q.qz + "/" + Q.qz) +
+            "</div>" +
+            (done && !q.boss
+              ? "<button class='btn red tc-btn' onclick='startBoss(\"" + k + "\")'>&#9876; CHALLENGE BOSS</button>"
+              : "")
+          box.appendChild(card)
+        }
+      }
+      function renderSettings() {
+        $("st-rank").textContent = rankInfo().name
+        renderTrophyCase()
+        renderDaily()
       }
 
       function blk(ctx, x, y, w, h, c) {
@@ -1943,6 +2173,48 @@
           } else if (seed === 13) {
             blk(ctx, px + 10, py + 10, 12, 10, "#bfe3f4")
             blk(ctx, px + 10, py + 10, 12, 3, "#ffffff")
+          } else if (seed === 2) {
+            blk(ctx, px + 15, py + 2, 4, 4, "#e84848")
+            blk(ctx, px + 15, py + 6, 3, 4, "#ffffff")
+            blk(ctx, px + 15, py + 10, 4, 18, "#ffffff")
+            blk(ctx, px + 15, py + 12, 4, 2, "#e84848")
+            blk(ctx, px + 15, py + 17, 4, 2, "#e84848")
+            blk(ctx, px + 15, py + 22, 4, 2, "#e84848")
+          } else if (seed === 3) {
+            blk(ctx, px + 13, py + 22, 6, 8, "#5a3a26")
+            blk(ctx, px + 6, py + 20, 20, 6, "#1f8f4f")
+            blk(ctx, px + 8, py + 14, 16, 6, "#239b58")
+            blk(ctx, px + 10, py + 8, 12, 6, "#27a860")
+            blk(ctx, px + 14, py + 4, 4, 4, "#ffd23d")
+            blk(ctx, px + 15, py + 2, 2, 2, "#ffd23d")
+            blk(ctx, px + 6, py + 20, 20, 2, "#ffffff")
+            blk(ctx, px + 8, py + 14, 16, 2, "#ffffff")
+            blk(ctx, px + 10, py + 8, 12, 2, "#ffffff")
+            blk(ctx, px + 10, py + 17, 2, 2, "#e84848")
+            blk(ctx, px + 20, py + 17, 2, 2, "#3fb9d6")
+            blk(ctx, px + 13, py + 23, 2, 2, "#ffd23d")
+            blk(ctx, px + 18, py + 23, 2, 2, "#e84848")
+          } else if (seed === 6) {
+            blk(ctx, px + 2, py + 26, 28, 3, "#c9962a")
+            blk(ctx, px + 2, py + 29, 28, 1, "#8a6a1a")
+            for (let i = 0; i < 9; i++) {
+              const cx = px + 4 + i * 3
+              const tall = i === 4
+              blk(ctx, cx, py + (tall ? 16 : 18), 2, 10, "#3a7bd5")
+              blk(ctx, cx, py + (tall ? 14 : 16), 2, tall ? 2 : 3, tall ? "#ffd23d" : "#ff8a2e")
+            }
+          } else if (seed === 9) {
+            blk(ctx, px + 12, py + 6, 8, 4, "#e84848")
+            blk(ctx, px + 13, py + 3, 4, 3, "#e84848")
+            blk(ctx, px + 12, py + 10, 8, 2, "#f4f4f4")
+            blk(ctx, px + 12, py + 12, 8, 6, "#f2b28c")
+            blk(ctx, px + 13, py + 14, 2, 2, "#101828")
+            blk(ctx, px + 17, py + 14, 2, 2, "#101828")
+            blk(ctx, px + 14, py + 17, 4, 1, "#e8a53a")
+            blk(ctx, px + 11, py + 17, 10, 7, "#f4f4f4")
+            blk(ctx, px + 10, py + 23, 12, 7, "#e84848")
+            blk(ctx, px + 10, py + 23, 12, 2, "#f4f4f4")
+            blk(ctx, px + 15, py + 23, 2, 2, "#101828")
           }
         } else if (id === "spring") {
           if (seed === 0) {
@@ -2136,6 +2408,7 @@
         if (id === "s-settings") {
           syncSoundBtn()
           renderStats()
+          renderSettings()
         }
         if (id === "s-mastery") renderUnits()
         if (id === "s-shop") renderShop()
@@ -2629,6 +2902,7 @@
         roamAt: {},
         folks: [],
         footprints: [],
+        lights: [],
         hero: {
           x: 21,
           y: 21,
@@ -3104,6 +3378,85 @@
         ctx.fillRect(x + 29, y - 22, 8, 3)
       }
 
+      function winterGarland(ctx) {
+        const cols = ["#ff5f4e", "#ffd23d", "#3fb9d6", "#3fd6a5", "#e84848"]
+        OW.lights = []
+        const spans = [
+          { x0: 96, x1: 1184, y0: 84, y1: 96, amp: 30 },
+          { x0: 150, x1: 1080, y0: 618, y1: 632, amp: 16 },
+        ]
+        ctx.strokeStyle = "#1f4a2a"
+        ctx.lineWidth = 2
+        for (const sp of spans) {
+          const midY = Math.max(sp.y0, sp.y1) + sp.amp
+          ctx.beginPath()
+          ctx.moveTo(sp.x0, sp.y0)
+          ctx.quadraticCurveTo((sp.x0 + sp.x1) / 2, midY, sp.x1, sp.y1)
+          ctx.stroke()
+          for (let i = 0; i <= 26; i++) {
+            const t = i / 26
+            const x = sp.x0 + (sp.x1 - sp.x0) * t
+            const y = (1 - t) * (1 - t) * sp.y0 + 2 * (1 - t) * t * midY + t * t * sp.y1
+            const c = cols[i % cols.length]
+            ctx.fillStyle = c
+            ctx.fillRect(Math.round(x) - 2, Math.round(y) - 2, 4, 4)
+            OW.lights.push({ x: Math.round(x), y: Math.round(y), c })
+          }
+        }
+      }
+
+      function winterBigTree(ctx) {
+        const x = 24 * OW.t + 6,
+          y = 14 * OW.t + 26
+        blk(ctx, x + 22, y + 12, 10, 22, "#5a3a26")
+        blk(ctx, x, y, 54, 14, "#1f8f4f")
+        blk(ctx, x + 4, y - 14, 46, 14, "#239b58")
+        blk(ctx, x + 9, y - 28, 36, 14, "#27a860")
+        blk(ctx, x, y, 54, 3, "#ffffff")
+        blk(ctx, x + 4, y - 14, 46, 3, "#ffffff")
+        blk(ctx, x + 9, y - 28, 36, 3, "#ffffff")
+        blk(ctx, x + 22, y - 36, 10, 8, "#ffd23d")
+        blk(ctx, x + 25, y - 40, 4, 4, "#ffd23d")
+        const orn = [
+          [10, y + 8, "#e84848"],
+          [24, y + 8, "#3fb9d6"],
+          [38, y + 8, "#ffd23d"],
+          [46, y + 8, "#3fd6a5"],
+          [7, y - 8, "#ffd23d"],
+          [20, y - 8, "#e84848"],
+          [34, y - 8, "#3fb9d6"],
+          [44, y - 8, "#e84848"],
+          [14, y - 22, "#3fd6a5"],
+          [28, y - 22, "#ffd23d"],
+          [40, y - 22, "#e84848"],
+        ]
+        for (const [ox, oy, c] of orn) {
+          blk(ctx, x + ox, oy, 3, 3, c)
+        }
+      }
+
+      function winterSanta(ctx) {
+        const x = 18 * OW.t + 6,
+          y = 19 * OW.t + 18
+        blk(ctx, x + 8, y + 4, 10, 6, "#e84848")
+        blk(ctx, x + 10, y, 5, 4, "#e84848")
+        blk(ctx, x + 8, y + 10, 10, 2, "#f4f4f4")
+        blk(ctx, x + 8, y + 12, 10, 7, "#f2b28c")
+        blk(ctx, x + 9, y + 15, 2, 2, "#101828")
+        blk(ctx, x + 15, y + 15, 2, 2, "#101828")
+        blk(ctx, x + 11, y + 18, 4, 1, "#e8a53a")
+        blk(ctx, x + 6, y + 19, 14, 10, "#f4f4f4")
+        blk(ctx, x + 4, y + 29, 18, 10, "#e84848")
+        blk(ctx, x + 4, y + 29, 18, 2, "#f4f4f4")
+        blk(ctx, x + 11, y + 29, 4, 2, "#101828")
+        blk(ctx, x + 5, y + 38, 4, 4, "#2b2b33")
+        blk(ctx, x + 17, y + 38, 4, 4, "#2b2b33")
+        blk(ctx, x + 1, y + 24, 3, 8, "#f4f4f4")
+        blk(ctx, x + 22, y + 24, 3, 8, "#f4f4f4")
+        blk(ctx, x + 22, y + 22, 5, 3, "#3fb9d6")
+        blk(ctx, x + 20, y + 20, 3, 3, "#ffffff")
+      }
+
       function buildStatic() {
         const cv = document.createElement("canvas")
         cv.width = OW.w * OW.t
@@ -3177,6 +3530,12 @@
           drawBuilding3D(ctx, b, SEASON.roofs)
         })
         drawWelcomeSign(ctx)
+        OW.lights = []
+        if (SEASON.id === "winter") {
+          winterBigTree(ctx)
+          winterSanta(ctx)
+          winterGarland(ctx)
+        }
         OW.static = cv
       }
 
@@ -3188,6 +3547,8 @@
         $("ow-coins").textContent = SAVE.coins
         $("ow-trophies").textContent = SAVE.stats.trophies
         $("ow-wins").textContent = SAVE.stats.wins
+        const rk = $("ow-rank")
+        if (rk) rk.textContent = rankInfo().name
       }
 
       function drawOverworld(ctx, now) {
@@ -3213,6 +3574,14 @@
             ctx.fillStyle = "rgba(255,255,255," + (a * 0.4).toFixed(2) + ")"
             ctx.fillRect(fp.x * T + 9, fp.y * T + 18, 8, 4)
             ctx.fillRect(fp.x * T + 17, fp.y * T + 14, 8, 4)
+          }
+          for (let i = 0; i < OW.lights.length; i++) {
+            const l = OW.lights[i]
+            const a = 0.3 + 0.35 * Math.sin(now / 260 + i * 1.7)
+            ctx.fillStyle = l.c
+            ctx.globalAlpha = Math.max(0, a)
+            ctx.fillRect(l.x - 3, l.y - 3, 10, 10)
+            ctx.globalAlpha = 1
           }
         }
         for (const f of OW.folks) {
@@ -4431,8 +4800,10 @@
         fb.innerHTML = "<div class='fb-title'>" + (right ? "CORRECT!" : "WRONG!") + "</div>" + q.why
         if (right) {
           CUR.correct++
+          questState().qz++
           SFX.correct()
         } else SFX.wrong()
+        checkQuests()
         $("quiz-next").style.display = "block"
         $("quiz-next").textContent = CUR.qi < u.quiz.length - 1 ? "NEXT" : "SEE SCORE"
       }
@@ -5051,6 +5422,7 @@
         if (right) {
           G.sc.you++
           SAVE.stats.points++
+          questState().qz++
           SFX.point()
           if (CR) floatText(CR.x + CR.w * 0.5, CR.y + CR.h * 0.34, "+1", "#21d07a")
         } else {
@@ -5065,6 +5437,7 @@
           if (good) {
             G.sc.you++
             SAVE.stats.points++
+            questState().qz++
             SFX.correct()
             if (CR) floatText(G.click.x, G.click.y - 12, "ZONE HIT!", "#21d07a")
           } else {
@@ -5080,6 +5453,7 @@
           fb.className = "fb " + (good ? "right" : "wrong")
         }
         save()
+        checkQuests()
         syncScore()
         setTimeout(afterFeedback, 2100)
       }
@@ -5103,9 +5477,16 @@
           SAVE.stats.losses++
           SFX.lose()
         }
-        const earned = won ? 25 : 10
+        const qst = questState()
+        if (won) {
+          if (LAST_MODE === "challenge") qst.win++
+          else if (LAST_MODE === "rally") qst.dbl++
+        }
+        const earned = won ? Math.round(25 * rankInfo().mult) : 10
         SAVE.coins += earned
         save()
+        checkQuests()
+        renderOwHud()
         $("result-title").textContent = won ? "CHAMPIONSHIP!" : "THE L. BRUTAL."
         $("result-title").style.color = won ? "#179a58" : "#e84848"
         $("res-you").textContent = G.sc.you
@@ -5219,6 +5600,12 @@
         lastHitBy: null,
         rally: 0,
         err: 0.14,
+        errBase: 0.14,
+        cpuSpd: 0.5,
+        target: 11,
+        daily: false,
+        boss: false,
+        bossKey: "",
         lastCourt: null,
         floats: [],
         banner: "",
@@ -5235,22 +5622,27 @@
       const R_SWEET = 0.8
       const R_SWEET_R = 0.12
 
-      function startRally() {
+      function startRally(opp, daily) {
         R.sc = [0, 0]
         R.rally = 0
+        R.errBase = 0.14
         R.err = 0.14
+        R.cpuSpd = R_CPUSPD
+        R.target = 11
+        R.daily = !!daily
+        R.boss = false
         R.phase = "idle"
         R.serve = true
         R.trail = []
         R.floats = []
         R.banner = ""
-        R.opp = pick(["GECKO GRINDERS", "THE LOBSTER DUO", "KITCHEN KINGS", "RALLY RATS", "WALLACE & WALLACE"])
-        $("rally-opp").textContent = "VS " + R.opp
+        R.opp = opp || pick(["GECKO GRINDERS", "THE LOBSTER DUO", "KITCHEN KINGS", "RALLY RATS", "WALLACE & WALLACE"])
+        $("rally-opp").textContent = (R.daily ? "DAILY: " : "") + "VS " + R.opp
         $("rb-you-lbl").textContent = SAVE.name + " + PAL"
         $("rb-cpu-lbl").textContent = R.opp
         $("vs-you").textContent = SAVE.name + " + PAL"
         $("vs-cpu").textContent = R.opp
-        $("vsub").textContent = "DOUBLES COURT"
+        $("vsub").textContent = R.daily ? "DAILY CHALLENGE" : "DOUBLES COURT"
         $("vs-splash").style.display = "flex"
         show("s-rally")
         rallySync()
@@ -5258,6 +5650,33 @@
           $("vs-splash").style.display = "none"
           rallyServe()
         }, 1800)
+      }
+      function startDaily() {
+        const r = mulberry32(dailySeed())
+        const names = ["THE SLUGS", "NET NINJAS", "DINK DYNAMOS", "VIPER VOLLEYS", "PADDLE PIRATES", "SMASH SISTERS"]
+        const opp = names[Math.floor(r() * names.length)]
+        startRally(opp, true)
+        R.errBase = 0.1
+        R.err = 0.1
+      }
+      function startBoss(id) {
+        const k = id || SEASON.id
+        if (SEASON.id !== k) setSeason(k)
+        const q = questState(k)
+        if (!q.star) {
+          toast("MASTER ALL " + SEASONS[k].name + " QUESTS FIRST!")
+          return
+        }
+        const Q = QUEST_LIST[k]
+        startRally(Q.rival)
+        R.boss = true
+        R.bossKey = k
+        R.errBase = 0.03
+        R.err = 0.03
+        R.cpuSpd = 0.62
+        R.target = 15
+        $("rally-opp").textContent = "BOSS: VS " + Q.rival
+        $("vsub").textContent = "BOSS RIVAL - " + SEASONS[k].name.toUpperCase()
       }
       function rematch() {
         if (LAST_MODE === "rally") startRally()
@@ -5347,8 +5766,8 @@
           const d2 = Math.hypot(R.players.c2.x - ball.x, R.players.c2.y - ball.y)
           const prime = d1 <= d2 ? R.players.c1 : R.players.c2
           const cover = d1 <= d2 ? R.players.c2 : R.players.c1
-          rallyStep(prime, ball.x, ball.y, R_CPUSPD, dt)
-          rallyStep(cover, cover === R.players.c1 ? 0.72 : 0.28, 0.18, R_CPUSPD * 0.5, dt)
+          rallyStep(prime, ball.x, ball.y, R.cpuSpd, dt)
+          rallyStep(cover, cover === R.players.c1 ? 0.72 : 0.28, 0.18, R.cpuSpd * 0.5, dt)
           if (Math.hypot(prime.x - ball.x, prime.y - ball.y) < R_HT) {
             if (!R.cpuWindup) R.cpuWindup = now
             else if (now - R.cpuWindup > 320) {
@@ -5357,8 +5776,8 @@
             }
           } else R.cpuWindup = 0
         } else {
-          rallyStep(R.players.c1, 0.72, 0.18, R_CPUSPD * 0.5, dt)
-          rallyStep(R.players.c2, 0.28, 0.18, R_CPUSPD * 0.5, dt)
+          rallyStep(R.players.c1, 0.72, 0.18, R.cpuSpd * 0.5, dt)
+          rallyStep(R.players.c2, 0.28, 0.18, R.cpuSpd * 0.5, dt)
         }
         if (R.returner === "pal") {
           if (Math.hypot(R.players.pal.x - ball.x, R.players.pal.y - ball.y) < R_HT) {
@@ -5497,17 +5916,18 @@
         if (winner === 0 && R.rally >= 6) {
           const bonus = Math.min(5, R.rally - 5)
           SAVE.coins += bonus
+          if (R.rally > SAVE.stats.longestRally) SAVE.stats.longestRally = R.rally
           save()
           rallyFloat(0.5, 0.55, "RALLY x" + R.rally + " +" + bonus + " COINS", "#ffd23d")
         }
         SFX.point()
         rallySync()
-        if ((R.sc[0] >= 11 && R.sc[0] - R.sc[1] >= 2) || (R.sc[1] >= 11 && R.sc[1] - R.sc[0] >= 2)) {
+        if ((R.sc[0] >= R.target && R.sc[0] - R.sc[1] >= 2) || (R.sc[1] >= R.target && R.sc[1] - R.sc[0] >= 2)) {
           rallyEnd(winner === 0)
           return
         }
         R.serve = winner === 0
-        R.err = clamp(0.14 + (R.sc[1] - R.sc[0]) * 0.03, 0.08, 0.3)
+        R.err = clamp(R.errBase + (R.sc[1] - R.sc[0]) * 0.03, 0.03, 0.3)
         setTimeout(rallyServe, 1500)
       }
       function rallyEnd(won) {
@@ -5515,6 +5935,20 @@
         LAST_MODE = "rally"
         G.sc = { you: R.sc[0], cpu: R.sc[1] }
         G.opp = R.opp
+        if (R.boss) {
+          R.boss = false
+          const q = questState(R.bossKey)
+          if (won && !q.boss) {
+            q.boss = true
+            SAVE.coins += 300
+            save()
+            toast("\u2694 BOSS RIVAL DOWN! +300 COINS")
+          }
+        }
+        if (R.daily) {
+          R.daily = false
+          if (won) awardDaily()
+        }
         endGame(won)
       }
       function rallyQuit() {
