@@ -91,6 +91,11 @@ const ids = [
   "door-modal",
   "dm-title",
   "dm-sub",
+  "dm-yes",
+  "dm-alt",
+  "dm-no",
+  "season-modal",
+  "season-grid",
   "ow-preview",
   "flash",
   "unit-list",
@@ -208,42 +213,49 @@ try {
   while (OW.dialog && guard++ < 12) advanceDialog();
   if (OW.dialog) throw new Error('dialog not hidden');
 
-  OW.hero.tx = 18; OW.hero.ty = 7; OW.hero.px = 18*OW.t; OW.hero.py = 7*OW.t;
+  OW.hero.tx = 13; OW.hero.ty = 19; OW.hero.px = 13*OW.t; OW.hero.py = 19*OW.t;
   OW.keys['arrowright'] = true;
   for (let i=0;i<12;i++) updateHero(0);
   OW.keys['arrowright'] = false;
-  if (OW.hero.tx < 19) throw new Error('hero did not move');
+  if (OW.hero.tx <= 13) throw new Error('hero did not move');
 
   OW.hero.tx = 18; OW.hero.ty = 15; OW.hero.px = 18*OW.t; OW.hero.py = 15*OW.t;
   checkDoor();
   if (OW.pending) throw new Error('checkDoor set pending on non-door');
   OW.entering = false;
 
-  OW.hero.tx = 6; OW.hero.ty = 17; OW.hero.px = 6*OW.t; OW.hero.py = 17*OW.t;
-  OW.hero.prev = { x: 5, y: 17 };
+  OW.hero.tx = 7; OW.hero.ty = 21; OW.hero.px = 7*OW.t; OW.hero.py = 21*OW.t;
+  OW.hero.prev = { x: 7, y: 20 };
   checkDoor();
   if (!OW.pending) throw new Error('checkDoor no pending on door');
   if (!$('door-modal').style.display === 'flex') throw new Error('door modal not shown');
+  if ($("dm-alt").style.display === 'block') throw new Error('building modal should hide PLAY');
   doorNo();
   if (OW.pending) throw new Error('doorNo left pending');
-  if (OW.hero.tx !== 5) throw new Error('doorNo did not return hero');
+  if (OW.hero.tx !== 7 || OW.hero.ty !== 20) throw new Error('doorNo did not return hero');
 
-  OW.hero.tx = 6; OW.hero.ty = 17; OW.hero.px = 6*OW.t; OW.hero.py = 17*OW.t;
-  OW.hero.prev = { x: 5, y: 17 };
+  OW.hero.tx = 7; OW.hero.ty = 21; OW.hero.px = 7*OW.t; OW.hero.py = 21*OW.t;
+  OW.hero.prev = { x: 7, y: 20 };
   checkDoor();
   doorYes();
   if (OW.pending) throw new Error('doorYes left pending');
   if (!OW.entering) throw new Error('doorYes did not enter');
   OW.entering = false;
 
-  openCourtPrompt(5, 3);
+  openCourtPrompt();
   if (!OW.playPending) throw new Error('no play pending');
+  if ($("dm-alt").style.display !== 'block') throw new Error('court modal missing PLAY');
   doorNo();
   if (OW.playPending) throw new Error('doorNo left play pending');
-  openCourtPrompt(13, 3);
-  if (OW.playPending.court !== 'doubles') throw new Error('court detect wrong');
+  openCourtPrompt();
+  if (!OW.playPending) throw new Error('no play pending 2');
   doorYes();
   if (OW.playPending) throw new Error('doorYes left play pending');
+  $("vs-splash").style.display = "none";
+  openCourtPrompt();
+  if (!OW.playPending) throw new Error('no play pending 3');
+  doorAlt();
+  if (OW.playPending) throw new Error('doorAlt left play pending');
   $("vs-splash").style.display = "none";
 
   startRally();
@@ -322,6 +334,7 @@ try {
   setupScenario();
   const t0 = G.t0;
   gameFrame(wait(2000));
+  if ($("game-q").textContent.length === 0) throw new Error('challenge question not shown');
   const court = courtRect(560,460);
   G.lastCourt = court;
   gameAnswer(G.scenario.c);
@@ -351,6 +364,15 @@ try {
   const coinsBefore2 = SAVE.coins;
   endGame(false);
   if (SAVE.coins !== coinsBefore2 + 10) throw new Error('lose coins not awarded');
+
+  const origSeason = SEASON.id;
+  const altSeason = Object.keys(SEASONS).find((k) => k !== origSeason);
+  setSeason(altSeason);
+  if (SEASON.id !== altSeason) throw new Error('setSeason did not switch');
+  if (SAVE.season !== altSeason) throw new Error('setSeason did not persist');
+  if ($("season-modal").style.display !== 'none') throw new Error('setSeason did not close modal');
+  setSeason(origSeason);
+  if (SAVE.season !== origSeason) throw new Error('setSeason restore failed');
 
   resetSave();
   console.log('ALL FLOWS OK');
