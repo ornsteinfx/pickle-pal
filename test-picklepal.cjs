@@ -294,6 +294,12 @@ try {
   ambReset(AMB_A);
   ambReset(AMB_B);
 
+  const AMB_T = OW.t;
+  const onCourt = (r, c) =>
+    r.x === c[0] * AMB_T && r.y === c[1] * AMB_T && r.w === (c[2] - c[0] + 1) * AMB_T && r.h === (c[3] - c[1] + 1) * AMB_T;
+  if (!onCourt(AMB_A.rect, [4, 3, 10, 18])) throw new Error('AMB_A not aligned with challenge court');
+  if (!onCourt(AMB_B.rect, [15, 3, 21, 18])) throw new Error('AMB_B not aligned with doubles court');
+
   show('s-mastery');
   renderUnits();
   openUnit(0);
@@ -331,6 +337,8 @@ try {
   renderShop();
 
   startGame();
+  gameFrame(wait(2000));
+  if (G.phase !== 'splash') throw new Error('game did not stay in splash');
   setupScenario();
   const t0 = G.t0;
   gameFrame(wait(2000));

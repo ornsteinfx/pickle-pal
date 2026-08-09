@@ -3694,14 +3694,14 @@
         "doubles",
         "PURPLE PANTHERS",
         "GREEN GECKOS",
-        { x: 3 * 32, y: 2 * 32, w: 6 * 32, h: 14 * 32 },
+        { x: 4 * 32, y: 3 * 32, w: 7 * 32, h: 16 * 32 },
         [0, 5],
       )
       const AMB_B = ambInit(
         "singles",
         "SIDEWINDERS",
         "RALLY RATS",
-        { x: 11 * 32, y: 2 * 32, w: 6 * 32, h: 14 * 32 },
+        { x: 15 * 32, y: 3 * 32, w: 7 * 32, h: 16 * 32 },
         [5, 8],
       )
       ambReset(AMB_A)
@@ -5135,6 +5135,7 @@
           G.reveal && G.reveal.zone ? { zone: G.reveal.zone, zoneGood: G.reveal.zoneGood } : null,
         )
         G.lastCourt = CR
+        if (G.phase === "splash") return
         let p = 1
         if (G.phase === "rally") {
           p = easeOut(clamp((now - G.t0) / 900, 0, 1))
