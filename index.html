@@ -1010,6 +1010,47 @@
         color: #d7f2dc;
         text-shadow: 2px 2px 0 var(--ink-dark);
       }
+      #tut-box {
+        position: fixed;
+        inset: 0;
+        display: none;
+        flex-direction: column;
+        align-items: center;
+        justify-content: flex-end;
+        pointer-events: none;
+        z-index: 55;
+      }
+      #tut-box .tut-panel {
+        pointer-events: auto;
+        background: var(--panel);
+        border: 4px solid var(--ink-dark);
+        box-shadow:
+          5px 5px 0 rgba(0, 0, 0, 0.55),
+          inset 0 0 0 2px #fff;
+        padding: 16px 18px 18px;
+        max-width: 560px;
+        width: 92%;
+        margin-bottom: 20px;
+      }
+      #tut-box .tut-name {
+        font-size: 9px;
+        color: var(--green);
+        margin-bottom: 10px;
+        text-shadow: 1px 1px 0 rgba(0, 0, 0, 0.15);
+      }
+      #tut-box .tut-text {
+        font-size: 10px;
+        line-height: 2;
+        color: var(--ink);
+      }
+      #tut-box .tut-arrow {
+        text-align: center;
+        margin-top: 8px;
+        color: var(--red);
+        font-size: 13px;
+        animation: bob 0.6s steps(2) infinite;
+        display: none;
+      }
 
       #result-title {
         font-size: 28px;
@@ -1373,6 +1414,14 @@
       <div class="vsub" style="margin-top: 10px">READY? DINK!</div>
     </div>
 
+    <div id="tut-box">
+      <div class="tut-panel">
+        <div class="tut-name">&#129476; MR. DILL SAYS...</div>
+        <div class="tut-text" id="tut-text"></div>
+        <div class="tut-arrow" id="tut-arrow">&#9660;</div>
+      </div>
+    </div>
+
     <script>
       const $ = (id) => document.getElementById(id)
       const clamp = (v, a, b) => Math.max(a, Math.min(b, v))
@@ -1412,6 +1461,7 @@
         season: "",
         quests: {},
         daily: { n: 0, last: "" },
+        tutorial: false,
       }
       let SAVE = load()
 
@@ -2616,6 +2666,7 @@
         }
         if (id === "s-mastery") renderUnits()
         if (id === "s-shop") renderShop()
+        if (id === "s-custom") renderCustom()
         if (id === "s-overworld") {
           hideDialog()
           if (OW.spawn) {
@@ -2654,6 +2705,7 @@
 
       const PADDLE_SHOP = [
         { col: "#ffd23d", name: "CLASSIC BANANA", price: 0, desc: "THE ORIGINAL. FREE." },
+        { col: "#3fd6a5", name: "DILL PICKLE PRO", price: 0, desc: "A GIFT FROM MR. DILL. FREE." },
         { col: "#e84848", name: "FIRE DRAGON", price: 30, desc: "SPICY. LITERALLY." },
         { col: "#3a7bd5", name: "TSUNAMI BLUE", price: 40, desc: "WAVES. SURF THE NET." },
         { col: "#21d07a", name: "VENOM GREEN", price: 40, desc: "POISON SHOT." },
@@ -2709,12 +2761,16 @@
           return
         }
         SAVE.coins -= price
-        SAVE.owned.push(col)
+        if (!SAVE.owned.includes(col)) SAVE.owned.push(col)
         save()
         SFX.click()
         toast(name + " PURCHASED!")
         renderShop()
         if ($("s-custom").classList.contains("on")) buildSwatches()
+        if (TUT.active) {
+          TUT.redeemed = true
+          tutRedeemed()
+        }
       }
       function equipPaddle(col) {
         if (!SAVE.owned.includes(col)) return
@@ -2906,6 +2962,72 @@
         }
         ctx.fillStyle = shade(pd, 0.7)
         ctx.fillRect(x + 10, dir === 1 ? y + 6 + bob : y + 2 + bob, 4, 2)
+        ctx.restore()
+      }
+
+      function drawPickleChar(ctx, x, y, dir, cfg, phase) {
+        const bob = Math.sin(phase * Math.PI) * 1.5
+        const body = cfg.pickle || "#7cc04a"
+        const hi = shade(body, 1.18)
+        const lo = shade(body, 0.72)
+        const band = cfg.band || "#e84848"
+        ctx.save()
+        ctx.fillStyle = "rgba(0,0,0,0.35)"
+        ctx.fillRect(x - 8, y + 2, 16, 5)
+        ctx.fillStyle = lo
+        ctx.beginPath()
+        ctx.ellipse(x, y - 4 + bob, 9, 12, 0, 0, Math.PI * 2)
+        ctx.fill()
+        ctx.fillStyle = body
+        ctx.beginPath()
+        ctx.ellipse(x - 1, y - 5 + bob, 8, 11, 0, 0, Math.PI * 2)
+        ctx.fill()
+        ctx.fillStyle = hi
+        for (const p of [
+          [x - 5, y - 12 + bob],
+          [x + 4, y - 10 + bob],
+          [x - 6, y - 6 + bob],
+          [x + 3, y - 2 + bob],
+          [x - 4, y + 2 + bob],
+          [x + 5, y + 1 + bob],
+        ]) {
+          ctx.fillRect(p[0], p[1], 2, 2)
+        }
+        ctx.fillStyle = band
+        ctx.fillRect(x - 7, y - 11 + bob, 14, 3)
+        ctx.fillStyle = shade(band, 0.8)
+        ctx.fillRect(x - 7, y - 9 + bob, 14, 1)
+        ctx.fillStyle = band
+        ctx.fillRect(x + 6, y - 12 + bob, 2, 5)
+        ctx.fillRect(x + 8, y - 14 + bob, 2, 3)
+        ctx.fillStyle = "#fff"
+        ctx.fillRect(x - 5, y - 7 + bob, 4, 4)
+        ctx.fillRect(x + 1, y - 7 + bob, 4, 4)
+        ctx.fillStyle = "#1f2a14"
+        if (dir === 0) {
+          ctx.fillRect(x - 4, y - 6 + bob, 2, 2)
+          ctx.fillRect(x + 2, y - 6 + bob, 2, 2)
+        }
+        if (dir === 1) {
+          ctx.fillRect(x - 4, y - 7 + bob, 2, 2)
+          ctx.fillRect(x + 2, y - 7 + bob, 2, 2)
+        }
+        if (dir === 2) ctx.fillRect(x - 6, y - 6 + bob, 2, 2)
+        if (dir === 3) ctx.fillRect(x + 4, y - 6 + bob, 2, 2)
+        ctx.fillStyle = "#2a3a1a"
+        ctx.fillRect(x - 3, y - 3 + bob, 6, 1)
+        ctx.fillStyle = lo
+        ctx.fillRect(x - 5, y + 4 + bob, 4, 3)
+        ctx.fillRect(x + 1, y + 4 + bob, 4, 3)
+        ctx.fillStyle = body
+        ctx.fillRect(x + 7, y - 1 + bob, 2, 4)
+        const pd = cfg.paddle || "#ffd23d"
+        ctx.fillStyle = "#8b5a2b"
+        ctx.fillRect(x + 9, y - 2 + bob, 2, 4)
+        ctx.fillStyle = pd
+        ctx.fillRect(x + 11, y - 5 + bob, 6, 5)
+        ctx.fillStyle = shade(pd, 0.7)
+        ctx.fillRect(x + 11, y - 1 + bob, 6, 2)
         ctx.restore()
       }
 
@@ -3993,7 +4115,8 @@
           const [x, y] = k.split(",").map(Number)
           const cfg = OW.npcs[k].cfg
           const phase = Math.floor(now / 700 + (x + y)) % 2
-          drawOwChar(ctx, x * T + T / 2, y * T + T / 2 + 6, 0, cfg, phase)
+          if (cfg.pickle) drawPickleChar(ctx, x * T + T / 2, y * T + T / 2 + 6, OW.npcs[k].dir || 0, cfg, phase)
+          else drawOwChar(ctx, x * T + T / 2, y * T + T / 2 + 6, 0, cfg, phase)
         }
         for (const r of OW.roam) {
           drawOwChar(ctx, r.pos[0] * T + T / 2, r.pos[1] * T + T / 2 + 6, r.dir, r.cfg, r.phase)
@@ -4013,6 +4136,7 @@
           buildStatic()
         }
         updateHero(now)
+        tutUpdate()
         updateRoam(now)
         ambUpdate(AMB_A, now)
         ambUpdate(AMB_B, now)
@@ -4052,6 +4176,10 @@
             }
           }
         } else {
+          if (TUT.active) {
+            h.phase = 0
+            return
+          }
           let mx = 0,
             my = 0
           if (OW.keys["arrowdown"] || OW.keys["s"]) my = 1
@@ -4102,6 +4230,7 @@
       }
 
       function checkDoor() {
+        if (TUT.active) return
         const h = OW.hero
         const k = Math.round(h.px / OW.t) + "," + Math.round(h.py / OW.t)
         if (OW.doors[k] && !OW.entering && !OW.pending && !OW.playPending) {
@@ -4119,6 +4248,7 @@
       }
       function openCourtPrompt() {
         if (OW.playPending) return
+        if (TUT.active) return
         OW.playPending = { prev: { x: OW.hero.tx, y: OW.hero.ty } }
         $("dm-title").textContent = "STEP ONTO THE COURT?"
         $("dm-sub").textContent = "QUIZ = LIVE CALLS, SHOTS AND SHOT IQ. PLAY = REAL-TIME 2V2 DOUBLES. FIRST TO 11."
@@ -6540,6 +6670,214 @@
         drawBall(ctx, ...m([bx, by]), [[m([0.5, 0.5])[0], m([0.5, 0.5])[1]]])
       }
 
+      /* ================= TUTORIAL (MR. DILL) ================= */
+
+      const DILL_PADDLE = "#3fd6a5"
+      const MRDILL = {
+        name: "MR. DILL",
+        cfg: { pickle: "#7cc04a", band: "#e84848", paddle: DILL_PADDLE },
+        lines: ["WELCOME TO PICKLE PAL, PAL!", "FOLLOW ME AND I'LL SHOW YOU EVERYTHING."],
+      }
+      const SEASON_BLURB = {
+        summer: "SUN, SURF AND BEACH BALLS - THE CLASSIC DINK SEASON.",
+        fall: "CRISP LEAVES AND PUMPKIN SPICE EVERYWHERE.",
+        sakura: "BLOSSOMS FLOAT THROUGH THE AIR LIKE PERFECT DINK SHOTS.",
+        winter: "ICE-COLD COURTS - LEAVE A TRAIL OF FOOTPRINTS.",
+        spring: "FRESH FLOWERS AND BUTTERFLIES BY THE DOZEN.",
+        cyber: "NEON GRID COURTS - THE FUTURE OF DINK IS HERE.",
+        candy: "SUGAR, SPRINKLES AND SWEET SALT-SHOT DELIGHTS.",
+      }
+
+      const TUT = {
+        active: false,
+        i: 0,
+        q: [],
+        dt: [21, 20],
+        redeemed: false,
+        saved: "",
+        steps: [],
+      }
+
+      function tutType(msg) {
+        const text = $("tut-text")
+        text.dataset.done = "0"
+        typewrite(text, msg, 16, tutArrow)
+      }
+      function tutArrow() {
+        if (!TUT.active) return
+        const st = TUT.steps[TUT.i]
+        if (!st) return
+        const text = $("tut-text")
+        const can = (!st.at || st.arrived) && (!st.redeem || st.confirmed)
+        $("tut-arrow").style.display = text.dataset.done === "1" && can ? "block" : "none"
+      }
+      function placeDill() {
+        const h = OW.hero
+        if (h.moving && h.prev) TUT.dt = [h.prev.x, h.prev.y]
+        const dx = TUT.dt[0],
+          dy = TUT.dt[1]
+        let dir = 1
+        if (dy < h.ty) dir = 0
+        else if (dy > h.ty) dir = 1
+        else if (dx > h.tx) dir = 2
+        else if (dx < h.tx) dir = 3
+        OW.npcs[dx + "," + dy] = { name: MRDILL.name, cfg: MRDILL.cfg, dir: dir, lines: MRDILL.lines }
+      }
+      function tutStartStep(st) {
+        st.arrived = false
+        st.confirmed = false
+        st.onStarted = false
+        TUT.q = st.via ? st.via.slice().reverse() : []
+        if (st.onStart) st.onStart()
+        tutType(st.say)
+      }
+      function tutAdvance() {
+        if (!TUT.active || OW.entering) return
+        const st = TUT.steps[TUT.i]
+        if (!st) return
+        if (st.at && !st.arrived) return
+        if (st.redeem && !st.confirmed) return
+        const text = $("tut-text")
+        if (text.dataset.done !== "1") {
+          TWTOKEN++
+          text.textContent = st.confirmed ? st.confirm : st.say
+          text.dataset.done = "1"
+          tutArrow()
+          return
+        }
+        if (st.onEnd) st.onEnd()
+        TUT.i++
+        const next = TUT.steps[TUT.i]
+        if (!next) return endTutorial()
+        tutStartStep(next)
+      }
+      function tutRedeemed() {
+        const st = TUT.steps[TUT.i]
+        if (st && st.redeem && !st.confirmed) {
+          st.confirmed = true
+          tutType(st.confirm)
+        }
+      }
+      function tutUpdate() {
+        if (!TUT.active) return
+        const h = OW.hero
+        const st = TUT.steps[TUT.i]
+        if (!st) return endTutorial()
+        if (st.onStart && !st.onStarted) {
+          st.onStarted = true
+          st.onStart()
+        }
+        placeDill()
+        if (st.at) {
+          const target = TUT.q.length ? TUT.q[TUT.q.length - 1] : st.at
+          if (!h.moving) {
+            if (h.tx === target[0] && h.ty === target[1]) {
+              if (TUT.q.length) TUT.q.pop()
+              else if (!st.arrived) {
+                st.arrived = true
+                if (st.after) st.after()
+              }
+            } else {
+              h.prev = { x: h.tx, y: h.ty }
+              h.tx = target[0]
+              h.ty = target[1]
+              h.moving = true
+            }
+          }
+        }
+        if (st.redeem && !st.confirmed && SAVE.owned.includes(DILL_PADDLE)) tutRedeemed()
+        tutArrow()
+      }
+      function endTutorial() {
+        SAVE.tutorial = true
+        save()
+        TUT.active = false
+        TUT.i = 0
+        TUT.q = []
+        $("tut-box").style.display = "none"
+        $("tut-text").textContent = ""
+        $("tut-text").dataset.done = "0"
+        $("tut-arrow").style.display = "none"
+        const key = TUT.dt[0] + "," + TUT.dt[1]
+        if (OW.npcs[key]) delete OW.npcs[key]
+        OW.keys = {}
+        toast("TOUR COMPLETE! NOW GO DINK, PAL!")
+      }
+      function startTutorial() {
+        TUT.active = true
+        TUT.i = 0
+        TUT.redeemed = false
+        TUT.saved = SEASON.id
+        const hero = OW.hero
+        hero.tx = 21
+        hero.ty = 21
+        hero.px = 21 * OW.t
+        hero.py = 21 * OW.t
+        hero.moving = false
+        hero.prev = { x: 21, y: 20 }
+        TUT.dt = [21, 20]
+        const seasonSteps = Object.keys(SEASONS).map((k) => ({
+          say: SEASONS[k].icon + " " + SEASONS[k].name.toUpperCase() + "! " + SEASON_BLURB[k],
+          onStart: () => setSeason(k),
+        }))
+        TUT.steps = [
+          {
+            say: "HEY THERE, PAL! I'M MR. DILL - PICKLEBALL TOUR GUIDE. I'M GOING TO SHOW YOU EVERYTHING IN PICKLE PAL!",
+          },
+          {
+            say: "FIRST, THE COURTS! LEFT IS THE CHALLENGE COURT - STEP ON FOR QUIZ GAMES. RIGHT IS DOUBLES - REAL-TIME 2V2 PLAY!",
+            at: [13, 19],
+            via: [
+              [21, 20],
+              [13, 20],
+            ],
+          },
+          {
+            say: "NOW FOLLOW ME TO THE ACADEMY - I'LL SHOW YOU A SAMPLE LESSON.",
+            at: [33, 20],
+            via: [[13, 20]],
+            after: () => openUnit(0),
+          },
+          {
+            say: "THAT'S A SAMPLE LESSON! LESSONS + QUIZZES = MASTERY. NOW LET'S SEE THE OTHER BUILDINGS.",
+            onEnd: () => backToWorld(),
+          },
+          { say: "WALK TO THE FITTING ROOM - FOLLOW ME!", at: [7, 20], after: () => show("s-custom") },
+          {
+            say: "THE FITTING ROOM! STYLE YOUR HAIR, COLORS AND PADDLE. NEXT: THE PADDLE SHOP!",
+            onEnd: () => backToWorld(),
+          },
+          { say: "WALK TO THE PADDLE SHOP - FOLLOW ME!", at: [16, 20], after: () => show("s-shop") },
+          {
+            say: "THE PADDLE SHOP! SEE THE GREEN DILL PICKLE PADDLE? IT'S FREE - MY GIFT! CLICK BUY TO REDEEM IT!",
+            redeem: true,
+            confirm: "YOU DID IT! TWO STARTER PADDLES - WE'RE BASICALLY FAMILY NOW. ON TO THE CLUBHOUSE!",
+            onEnd: () => backToWorld(),
+          },
+          { say: "WALK TO THE CLUBHOUSE - FOLLOW ME!", at: [25, 20], after: () => show("s-settings") },
+          {
+            say: "THE CLUBHOUSE! CHECK STATS, DAILY BONUS AND SAVE DATA. LAST STOP: THE SEASONS!",
+            onEnd: () => backToWorld(),
+          },
+          { say: "WALK BACK TO CENTER COURT - I'LL SHOW YOU THE SEASONS!", at: [21, 20] },
+          ...seasonSteps,
+          {
+            say: "THAT'S THE WHOLE TOUR! THE COURTS ARE OPEN - GO DINK, PAL! COME TALK TO ME ANYTIME.",
+            onStart: () => setSeason(TUT.saved),
+          },
+        ]
+        $("tut-box").style.display = "flex"
+        tutStartStep(TUT.steps[0])
+      }
+      function maybeStartTutorial() {
+        if (SAVE.tutorial || !$("tut-box")) return
+        startTutorial()
+      }
+      function enterWorld() {
+        show("s-overworld")
+        maybeStartTutorial()
+      }
+
       /* ================= INPUT / BOOT ================= */
 
       document.addEventListener("keydown", (e) => {
@@ -6562,6 +6900,11 @@
           e.preventDefault()
           return
         }
+        if (TUT.active && (k === " " || k === "enter")) {
+          tutAdvance()
+          e.preventDefault()
+          return
+        }
         if ($("door-modal").style.display === "flex") {
           if (k === "enter" || k === " ") doorYes()
           else if (k === "escape") doorNo()
@@ -6574,7 +6917,7 @@
           return
         }
         if ((k === " " || k === "enter") && $("s-title").classList.contains("on")) {
-          show("s-overworld")
+          enterWorld()
           return
         }
         if ((k === " " || k === "enter") && $("s-lesson").classList.contains("on")) {
@@ -6608,7 +6951,10 @@
 
       $("s-title").addEventListener("click", () => {
         bootMusic()
-        if ($("s-title").classList.contains("on")) show("s-overworld")
+        if ($("s-title").classList.contains("on")) enterWorld()
+      })
+      $("tut-box").addEventListener("click", (e) => {
+        if (e.target.closest(".tut-panel")) tutAdvance()
       })
       document.addEventListener("pointerdown", bootMusic)
       $("s-overworld").addEventListener("click", (e) => {
