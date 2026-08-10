@@ -398,7 +398,7 @@ try {
   if (!OW.lights || !OW.lights.length) throw new Error('no winter lights');
   const wctx = document.createElement('canvas').getContext('2d');
   for (const s of [2, 3, 6, 9]) seasonTile(wctx, 0, 0, 32, s, SEASON);
-  setSeason(origSeason);
+  setSeason(origSeason === 'winter' ? 'summer' : origSeason);
   if (OW.lights.length) throw new Error('lights persist after season switch');
 
   // ---- rank ----

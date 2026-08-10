@@ -33,12 +33,14 @@
         --bar: #e84848;
         --bar-text: #fff;
         --glow: rgba(255, 210, 61, 0.45);
+        --bg1: #123525;
       }
       #season-badge {
         font-size: 9px;
         padding: 8px 12px;
-        color: #fff;
-        background: var(--bar);
+        color: var(--bar-text);
+        background-color: var(--bar);
+        background-image: linear-gradient(180deg, rgba(255, 255, 255, 0.25), rgba(0, 0, 0, 0.15));
         border: 3px solid var(--ink-dark);
         box-shadow: 3px 3px 0 rgba(0, 0, 0, 0.5);
         text-align: center;
@@ -62,8 +64,8 @@
       body {
         background: var(--bg);
         background-image:
-          radial-gradient(ellipse at 50% -10%, #123525 0%, transparent 55%),
-          repeating-linear-gradient(45deg, rgba(255, 255, 255, 0.02) 0 8px, transparent 8px 16px);
+          radial-gradient(ellipse at 50% -10%, var(--bg1) 0%, transparent 55%),
+          repeating-linear-gradient(45deg, rgba(255, 255, 255, 0.03) 0 8px, transparent 8px 16px);
         color: var(--ink);
         font-family: "Press Start 2P", "Courier New", monospace;
         overflow: hidden;
@@ -130,8 +132,10 @@
         padding: 16px;
       }
       .w-bar {
-        background: var(--bar);
-        background-image: repeating-linear-gradient(90deg, rgba(255, 255, 255, 0.08) 0 10px, transparent 10px 20px);
+        background-color: var(--bar);
+        background-image:
+          linear-gradient(180deg, rgba(255, 255, 255, 0.25), rgba(0, 0, 0, 0.15)),
+          repeating-linear-gradient(90deg, rgba(255, 255, 255, 0.08) 0 10px, transparent 10px 20px);
         border: 4px solid var(--ink-dark);
         border-bottom: none;
         box-shadow:
@@ -148,16 +152,17 @@
         gap: 8px;
       }
       .w-bar.blue {
-        background: var(--blue);
+        background-color: var(--blue);
       }
       .w-bar.green {
-        background: var(--green2);
+        background-color: var(--green2);
       }
       .w-bar.purple {
-        background: var(--purple);
+        background-color: var(--purple);
       }
       .w-bar .dim {
-        color: rgba(255, 255, 255, 0.75);
+        color: var(--bar-text);
+        opacity: 0.72;
         font-size: 9px;
       }
 
@@ -166,7 +171,13 @@
         font-size: 11px;
         text-transform: uppercase;
         color: #fff;
-        background: var(--blue);
+        background-color: var(--blue);
+        background-image: linear-gradient(
+          180deg,
+          rgba(255, 255, 255, 0.28) 0%,
+          rgba(255, 255, 255, 0) 45%,
+          rgba(0, 0, 0, 0.14) 100%
+        );
         border: 3px solid var(--ink-dark);
         padding: 13px 16px;
         cursor: pointer;
@@ -190,22 +201,22 @@
         width: 100%;
       }
       .btn.green {
-        background: var(--green);
+        background-color: var(--green);
         color: #04301a;
       }
       .btn.yellow {
-        background: var(--yellow);
+        background-color: var(--yellow);
         color: #3a2b00;
       }
       .btn.red {
-        background: var(--red);
+        background-color: var(--red);
         color: #330000;
       }
       .btn.purple {
-        background: var(--purple);
+        background-color: var(--purple);
       }
       .btn.dark {
-        background: #2a3a52;
+        background-color: #2a3a52;
       }
       .btn.disabled {
         filter: grayscale(0.8) brightness(0.7);
@@ -274,6 +285,16 @@
           9px 9px 0 rgba(0, 0, 0, 0.35),
           0 0 22px var(--glow);
         text-align: center;
+        animation: logoFloat 3.2s ease-in-out infinite;
+      }
+      @keyframes logoFloat {
+        0%,
+        100% {
+          transform: translateY(0);
+        }
+        50% {
+          transform: translateY(-6px);
+        }
       }
       #logo small {
         display: block;
@@ -501,7 +522,8 @@
         font-size: 8px;
         text-transform: uppercase;
         color: #fff;
-        background: var(--blue);
+        background-color: var(--blue);
+        background-image: linear-gradient(180deg, rgba(255, 255, 255, 0.28), rgba(0, 0, 0, 0.14));
         border: 3px solid var(--ink-dark);
         padding: 11px 4px;
         cursor: pointer;
@@ -515,7 +537,7 @@
         margin-bottom: 3px;
       }
       .season-opt.on {
-        background: var(--yellow);
+        background-color: var(--yellow);
         color: #3a2b00;
         box-shadow:
           0 0 0 3px var(--yellow),
@@ -530,7 +552,8 @@
       #season-badge .pick {
         display: block;
         font-size: 7px;
-        color: rgba(255, 255, 255, 0.8);
+        color: var(--bar-text);
+        opacity: 0.75;
         margin-top: 3px;
       }
       #ow-season {
@@ -817,24 +840,76 @@
       }
 
       /* ---------- GAME ---------- */
+      #s-game,
+      #s-rally {
+        padding: 0;
+        overflow: hidden;
+      }
+      #game-bar,
+      #rally-bar {
+        max-width: none;
+        flex: 0 0 auto;
+      }
+      .match-stage {
+        position: relative;
+        flex: 1 1 auto;
+        width: 100%;
+        min-height: 0;
+      }
       #game-canvas {
+        position: absolute;
+        inset: 0;
         image-rendering: pixelated;
         background: #174f37;
-        border: 3px solid var(--ink-dark);
-        box-shadow: 3px 3px 0 rgba(0, 0, 0, 0.5);
         display: block;
         width: 100%;
-        max-width: 480px;
-        height: auto;
-        margin: 0 auto;
+        height: 100%;
         cursor: default;
       }
       #game-canvas.aim {
         cursor: crosshair;
       }
       #rally-canvas {
+        position: absolute;
+        inset: 0;
         cursor: crosshair;
         display: block;
+        width: 100%;
+        height: 100%;
+      }
+      .sb-overlay {
+        position: absolute;
+        top: 10px;
+        left: 50%;
+        transform: translateX(-50%);
+        width: min(520px, 92%);
+        margin: 0;
+        z-index: 3;
+      }
+      .quiz-panel {
+        position: absolute;
+        left: 50%;
+        bottom: 12px;
+        transform: translateX(-50%);
+        width: min(560px, 94%);
+        background: var(--cream2);
+        border: 4px solid var(--ink-dark);
+        box-shadow:
+          4px 4px 0 rgba(0, 0, 0, 0.5),
+          inset 0 0 0 2px #fff;
+        color: var(--ink);
+        padding: 12px;
+        z-index: 4;
+      }
+      .match-actions {
+        position: absolute;
+        bottom: 14px;
+        right: 14px;
+        z-index: 3;
+        display: flex;
+        flex-direction: column;
+        align-items: flex-end;
+        gap: 6px;
       }
       .scoreboard {
         display: flex;
@@ -966,6 +1041,70 @@
         animation: blink 1.4s steps(2) 2;
       }
 
+      #fx {
+        position: fixed;
+        inset: 0;
+        z-index: 1;
+        pointer-events: none;
+        overflow: hidden;
+      }
+      #fx span {
+        position: absolute;
+        top: -10%;
+        opacity: 0;
+        animation: fxfall linear infinite;
+        will-change: transform, opacity;
+      }
+      #fx span.up {
+        top: auto;
+        bottom: -10%;
+        animation-name: fxrise;
+      }
+      @keyframes fxfall {
+        0% {
+          transform: translateY(0) rotate(0deg);
+          opacity: 0;
+        }
+        10% {
+          opacity: 0.85;
+        }
+        85% {
+          opacity: 0.85;
+        }
+        100% {
+          transform: translateY(120vh) rotate(300deg);
+          opacity: 0;
+        }
+      }
+      @keyframes fxrise {
+        0% {
+          transform: translateY(0) rotate(0deg);
+          opacity: 0;
+        }
+        10% {
+          opacity: 0.85;
+        }
+        85% {
+          opacity: 0.85;
+        }
+        100% {
+          transform: translateY(-120vh) rotate(-300deg);
+          opacity: 0;
+        }
+      }
+
+      .w,
+      .card,
+      .trophy-card,
+      .shop-card,
+      .unit-card,
+      .chip,
+      .dm-box,
+      .quiz-panel,
+      .scoreboard {
+        background-image: linear-gradient(180deg, rgba(255, 255, 255, 0.32) 0%, rgba(255, 255, 255, 0) 38%);
+      }
+
       @media (max-width: 700px) {
         #logo {
           font-size: 28px;
@@ -984,6 +1123,7 @@
     <div class="overlay scan"></div>
     <div class="overlay vig"></div>
     <div id="flash"></div>
+    <div id="fx"></div>
 
     <div id="season-modal">
       <div class="dm-box">
@@ -1120,6 +1260,7 @@
             <div class="q-text" id="quiz-q"></div>
             <div class="stack" id="quiz-opts"></div>
             <div class="fb" id="quiz-fb" style="display: none"></div>
+            <div id="quiz-score" style="display: none"></div>
           </div>
           <div style="height: 14px"></div>
           <button class="btn green grow" id="quiz-next" onclick="quizNext()" style="display: none">NEXT</button>
@@ -1148,8 +1289,9 @@
 
       <section id="s-game" class="screen">
         <div class="w-bar" id="game-bar">LIVE MATCH<span class="dim" id="game-opp"></span></div>
-        <div class="w">
-          <div class="scoreboard">
+        <div class="match-stage">
+          <canvas id="game-canvas"></canvas>
+          <div class="scoreboard sb-overlay">
             <div class="side you">
               <div class="lbl" id="sb-you-lbl">YOU</div>
               <div class="hp-bar" id="hp-you"></div>
@@ -1162,26 +1304,24 @@
               <div class="n" id="sb-cpu">0</div>
             </div>
           </div>
-          <canvas id="game-canvas" width="480" height="620"></canvas>
-          <div style="height: 14px"></div>
-          <div class="w" style="background: var(--cream2); box-shadow: inset 0 0 0 2px #fff">
+          <div class="quiz-panel">
             <div id="game-note" class="q-note"></div>
             <div id="game-q" class="q-text"></div>
             <div class="stack" id="game-opts"></div>
             <div class="fb" id="game-fb" style="display: none"></div>
           </div>
-          <div style="height: 14px"></div>
-          <div class="row">
+          <div class="match-actions">
+            <div class="text-small text-dim" id="game-hint" style="text-align: right">FIRST TO 11, WIN BY 2</div>
             <button class="btn dark" onclick="quitGame()">FORFEIT</button>
-            <div class="grow text-small text-dim" id="game-hint" style="text-align: right">FIRST TO 11, WIN BY 2</div>
           </div>
         </div>
       </section>
 
       <section id="s-rally" class="screen">
         <div class="w-bar green" id="rally-bar">DOUBLES COURT<span class="dim" id="rally-opp"></span></div>
-        <div class="w">
-          <div class="scoreboard">
+        <div class="match-stage">
+          <canvas id="rally-canvas"></canvas>
+          <div class="scoreboard sb-overlay">
             <div class="side you">
               <div class="lbl" id="rb-you-lbl">YOU + PAL</div>
               <div class="hp-bar" id="hp-r1"></div>
@@ -1194,15 +1334,12 @@
               <div class="n" id="rb-cpu">0</div>
             </div>
           </div>
-          <canvas id="rally-canvas" width="480" height="620"></canvas>
-          <div style="height: 14px"></div>
-          <div class="w" style="background: var(--cream2); box-shadow: inset 0 0 0 2px #fff">
+          <div class="quiz-panel" style="bottom: 52px">
             <div id="rally-msg" class="q-note"></div>
           </div>
-          <div style="height: 14px"></div>
-          <div class="row">
+          <div class="match-actions">
+            <div class="text-small text-dim" id="rally-hint" style="text-align: right">FIRST TO 11, WIN BY 2</div>
             <button class="btn dark" onclick="rallyQuit()">FORFEIT</button>
-            <div class="grow text-small text-dim" id="rally-hint" style="text-align: right">FIRST TO 11, WIN BY 2</div>
           </div>
         </div>
       </section>
@@ -1777,137 +1914,137 @@
             },
           ],
         },
-        retro: {
-          name: "RETRO",
-          icon: "\u{1F525}",
-          tag: "NEON ARCADE SEASON",
-          bar: "#ff3cc8",
-          barText: "#fff",
-          bg: "#150822",
-          panel: "#1c1030",
-          cream: "#1c1030",
-          cream2: "#261540",
-          ink: "#eaf2ff",
-          dim: "#9a86b8",
+        cyber: {
+          name: "NEON CITY",
+          icon: "\u{1F306}",
+          tag: "HIGH-TECH CITY SEASON",
+          bar: "#00e5ff",
+          barText: "#04202a",
+          bg: "#0a0f2e",
+          panel: "#141c3e",
+          cream: "#141c3e",
+          cream2: "#1c2750",
+          ink: "#e8f6ff",
+          dim: "#7a86c0",
           yellow: "#ffe23d",
-          red: "#ff5f5e",
+          red: "#ff4f8a",
           green: "#3fffd0",
-          blue: "#3f9ff0",
-          purple: "#b06fe0",
+          blue: "#4f8fff",
+          purple: "#a06fe0",
           orange: "#ff9a2e",
-          grass: "#221040",
-          grass2: "#2c1550",
-          grass3: "#1a0c36",
-          path: "#3a1f6a",
-          path2: "#2c1650",
-          water: "#ff3cc8",
-          water2: "#c9289f",
-          tree: { trunk: "#12081f", leaf: "#ff3cc8", leaf2: "#7ae7ff", leaf3: "#3fffd0" },
-          courtOut: "#1c1030",
-          courtIn: "#2a1850",
-          courtIn2: "#341f63",
-          roofs: ["#ff3cc8", "#3fffd0", "#ffe23d", "#3f9ff0", "#7ae7ff", "#ff7a2e"],
-          ball: { dark: "#3a0a2e", base: "#ff3cc8", shade: "#c9289f", hi: "#ffe23d" },
+          grass: "#121936",
+          grass2: "#1a2248",
+          grass3: "#0e142e",
+          path: "#3a2f6a",
+          path2: "#2c2454",
+          water: "#00e5ff",
+          water2: "#00a8c4",
+          tree: { trunk: "#2a2450", leaf: "#ff4f8a", leaf2: "#00e5ff", leaf3: "#3fffd0" },
+          courtOut: "#1a2248",
+          courtIn: "#26306a",
+          courtIn2: "#2e3a7c",
+          roofs: ["#00e5ff", "#ff4f8a", "#ffe23d", "#3fffd0", "#4f8fff", "#a06fe0"],
+          ball: { dark: "#0a1230", base: "#00e5ff", shade: "#0095b0", hi: "#ffffff" },
           music: {
-            bpm: 118,
-            bass: [55, 55, 55, 55, 55, 55, 55, 55, 49, 49, 49, 49, 49, 49, 49, 49],
-            pad: [55, 55, 49, 49],
-            lead: [440, 0, 440, 0, 587, 0, 587, 0, 392, 0, 392, 0, 523, 0, 587, 0],
+            bpm: 130,
+            bass: [49, 49, 49, 49, 65, 65, 65, 65, 41, 41, 41, 41, 55, 55, 49, 49],
+            pad: [49, 65, 55, 41],
+            lead: [523, 0, 659, 0, 587, 0, 784, 0, 523, 0, 494, 0, 587, 0, 659, 0],
             leadType: "sawtooth",
             kick: 4,
             hat: true,
             bells: false,
           },
           team: {
-            pal: { hair: "#12081f", shirt: "#3fffd0", shorts: "#1a0c36" },
-            home: { hair: "#2b0a3a", shirt: "#ff3cc8", shorts: "#1a0c36" },
-            away: { hair: "#3a0a2e", shirt: "#7ae7ff", shorts: "#0c1a36" },
+            pal: { hair: "#101828", shirt: "#00e5ff", shorts: "#0a2a3a" },
+            home: { hair: "#2a2a4a", shirt: "#ff4f8a", shorts: "#1a0c36" },
+            away: { hair: "#3a3a6a", shirt: "#3fffd0", shorts: "#0f3a2a" },
           },
           folks: [
             {
               x: 2,
               y: 4,
               dir: 1,
-              cfg: { hair: "#12081f", shirt: "#ff3cc8", pants: "#1a0c36", shoes: "#2b2b33", paddle: "#ffd23d" },
+              cfg: { hair: "#2a2a4a", shirt: "#00e5ff", pants: "#1a0c36", shoes: "#2b2b33", paddle: "#ffe23d" },
             },
             {
               x: 25,
               y: 10,
               dir: 3,
-              cfg: { hair: "#3a0a2e", shirt: "#7ae7ff", pants: "#0c1a36", shoes: "#2b2b33", paddle: "#3fffd0" },
+              cfg: { hair: "#3a3a6a", shirt: "#ff4f8a", pants: "#0c1a36", shoes: "#2b2b33", paddle: "#3fffd0" },
             },
             {
               x: 17,
               y: 9,
               dir: 0,
-              cfg: { hair: "#2b0a3a", shirt: "#ffe23d", pants: "#1a0c36", shoes: "#2b2b33", paddle: "#e84848" },
+              cfg: { hair: "#101828", shirt: "#3fffd0", pants: "#1a2248", shoes: "#2b2b33", paddle: "#00e5ff" },
             },
           ],
         },
-        galaxy: {
-          name: "GALAXY",
-          icon: "\u{1F680}",
-          tag: "OUTER SPACE SEASON",
-          bar: "#8a6fe0",
+        candy: {
+          name: "CANDY LAND",
+          icon: "\u{1F36D}",
+          tag: "SUGAR SEASON",
+          bar: "#ff5f8a",
           barText: "#fff",
-          bg: "#070b2a",
-          panel: "#121a3a",
-          cream: "#121a3a",
-          cream2: "#1a2448",
-          ink: "#e8eaff",
-          dim: "#8a90c0",
+          bg: "#3a1030",
+          panel: "#fff3f8",
+          cream: "#fff3f8",
+          cream2: "#fde2ef",
+          ink: "#5a2540",
+          dim: "#b07a96",
           yellow: "#ffd23d",
-          red: "#ff5f5e",
+          red: "#ff4f7a",
           green: "#3fd6a5",
-          blue: "#6f9ff0",
-          purple: "#b06fe0",
+          blue: "#6fb8ff",
+          purple: "#c96fd6",
           orange: "#ff9a2e",
-          grass: "#1c2650",
-          grass2: "#243060",
-          grass3: "#161f44",
-          path: "#4a4a7a",
-          path2: "#3a3a66",
-          water: "#6f5fcf",
-          water2: "#5a4cb4",
-          tree: { trunk: "#4a3a8a", leaf: "#8a6fe0", leaf2: "#c39bff", leaf3: "#5a4cb4" },
-          courtOut: "#1a1f44",
-          courtIn: "#2a3a6a",
-          courtIn2: "#32447c",
-          roofs: ["#8a6fe0", "#3fc7d6", "#ff5f8a", "#ffd23d", "#3fd6a5", "#6f9ff0"],
-          ball: { dark: "#1c1c3a", base: "#8a6fe0", shade: "#6a4cc0", hi: "#ffffff" },
+          grass: "#ffd9ec",
+          grass2: "#ffc4e0",
+          grass3: "#ffabcf",
+          path: "#fff0d9",
+          path2: "#f2cfa5",
+          water: "#7ae0e8",
+          water2: "#54c0cc",
+          tree: { trunk: "#c9955f", leaf: "#ff8ab8", leaf2: "#c9a5ff", leaf3: "#7ae0a8" },
+          courtOut: "#e07aa8",
+          courtIn: "#ff9ec4",
+          courtIn2: "#ffb2d2",
+          roofs: ["#ff5f8a", "#3fd6a5", "#ffd23d", "#c96fd6", "#6fb8ff", "#ff9a2e"],
+          ball: { dark: "#7a1030", base: "#ff8ab8", shade: "#d95a8a", hi: "#ffffff" },
           music: {
-            bpm: 84,
-            bass: [55, 0, 55, 0, 49, 0, 55, 0, 41, 0, 41, 0, 49, 0, 55, 0],
-            pad: [55, 49, 41, 49],
-            lead: [220, 0, 0, 0, 330, 0, 0, 0, 262, 0, 0, 0, 330, 0, 0, 0],
-            leadType: "sine",
-            kick: 0,
-            hat: false,
+            bpm: 138,
+            bass: [65, 65, 98, 98, 73, 73, 98, 98, 65, 65, 98, 98, 82, 82, 98, 98],
+            pad: [65, 73, 82, 98],
+            lead: [523, 659, 784, 659, 587, 659, 784, 880, 659, 587, 659, 784, 880, 784, 659, 587],
+            leadType: "triangle",
+            kick: 4,
+            hat: true,
             bells: false,
           },
           team: {
-            pal: { hair: "#3a3a6a", shirt: "#6f9ff0", shorts: "#1a2a5a" },
-            home: { hair: "#3a2a5a", shirt: "#b06fe0", shorts: "#2a1a4a" },
-            away: { hair: "#2a4a3a", shirt: "#3fd6a5", shorts: "#0f3a2a" },
+            pal: { hair: "#2b2b33", shirt: "#ff5f8a", shorts: "#8a1030" },
+            home: { hair: "#c9955f", shirt: "#ffd23d", shorts: "#3fd6a5" },
+            away: { hair: "#3a3a6a", shirt: "#c96fd6", shorts: "#4a1a6a" },
           },
           folks: [
             {
-              x: 17,
-              y: 9,
-              dir: 1,
-              cfg: { hair: "#f4f4f4", shirt: "#d8dcf0", pants: "#b8bcd0", shoes: "#2b2b33", paddle: "#ffd23d" },
-            },
-            {
               x: 2,
               y: 12,
-              dir: 2,
-              cfg: { hair: "#3a3a6a", shirt: "#b06fe0", pants: "#2a1a4a", shoes: "#2b2b33", paddle: "#3fffd0" },
+              dir: 1,
+              cfg: { hair: "#c9955f", shirt: "#ff5f8a", pants: "#3fd6a5", shoes: "#2b2b33", paddle: "#ffd23d" },
             },
             {
-              x: 24,
-              y: 9,
+              x: 25,
+              y: 10,
+              dir: 2,
+              cfg: { hair: "#3a3a6a", shirt: "#c96fd6", pants: "#ffd23d", shoes: "#2b2b33", paddle: "#3fd6a5" },
+            },
+            {
+              x: 17,
+              y: 3,
               dir: 0,
-              cfg: { hair: "#3a5a2a", shirt: "#3fd6a5", pants: "#0f3a2a", shoes: "#2b2b33", paddle: "#e84848" },
+              cfg: { hair: "#ffd23d", shirt: "#6fb8ff", pants: "#ff5f8a", shoes: "#f4f4f4", paddle: "#ff4f7a" },
             },
           ],
         },
@@ -1967,8 +2104,8 @@
         sakura: { name: "BLOOM", win: 3, dbl: 2, qz: 20, rival: "PETAL PERIL" },
         winter: { name: "FROST", win: 3, dbl: 2, qz: 20, rival: "THE YETI TWINS" },
         spring: { name: "SPROUT", win: 3, dbl: 2, qz: 20, rival: "BLOOM BRIGADE" },
-        retro: { name: "ARCADE", win: 3, dbl: 2, qz: 20, rival: "NEON NIGHTMARES" },
-        galaxy: { name: "STARDUST", win: 3, dbl: 2, qz: 20, rival: "COSMO RANGERS" },
+        cyber: { name: "GRIDRUNNER", win: 3, dbl: 2, qz: 20, rival: "NEON NIGHTMARES" },
+        candy: { name: "COTTON CANDY", win: 3, dbl: 2, qz: 20, rival: "SUGAR RUSH SYNDICATE" },
       }
 
       function questState(id) {
@@ -2111,15 +2248,15 @@
           blk(ctx, px + 2, py + 2, T - 4, 12, t.leaf)
           blk(ctx, px + 4, py + 2, T - 8, 4, t.leaf2)
           blk(ctx, px + 6, py + 8, 4, 4, t.leaf3)
-        } else if (S.id === "retro") {
+        } else if (S.id === "cyber") {
           blk(ctx, px + T / 2 - 1, py + 6, 2, 22, t.trunk)
           blk(ctx, px + T / 2 - 12, py + 2, 24, 4, t.leaf)
           blk(ctx, px + T / 2 - 12, py + 6, 24, 2, t.leaf2)
           blk(ctx, px + T / 2 - 6, py - 2, 12, 4, t.leaf)
-        } else if (S.id === "galaxy") {
-          blk(ctx, px + T / 2 - 3, py + 10, 6, 8, t.trunk)
-          blk(ctx, px + T / 2 - 7, py + 2, 14, 8, t.leaf)
-          blk(ctx, px + T / 2 - 4, py, 8, 4, t.leaf2)
+        } else if (S.id === "candy") {
+          blk(ctx, px + T / 2 - 2, py + 10, 4, 12, t.trunk)
+          blk(ctx, px + T / 2 - 8, py + 2, 16, 8, t.leaf)
+          blk(ctx, px + T / 2 - 5, py, 10, 4, t.leaf2)
           blk(ctx, px + T / 2 - 4, py + 10, 8, 2, t.leaf3)
         } else {
           blk(ctx, px + 2, py + 2, T - 4, 12, t.leaf)
@@ -2140,6 +2277,15 @@
             blk(ctx, px + 10, py + 4, 12, 3, "#1d4257")
             blk(ctx, px + 9, py + 3, 4, 3, "#fff")
             blk(ctx, px + 19, py + 3, 4, 3, "#fff")
+          } else if (seed === 7) {
+            blk(ctx, px + 12, py + 10, 3, 12, "#f2a03d")
+            blk(ctx, px + 12, py + 10, 6, 2, "#ffd23d")
+            blk(ctx, px + 15, py + 12, 6, 2, "#ffd23d")
+            blk(ctx, px + 12, py + 22, 6, 2, "#3f7a2f")
+          } else if (seed === 5) {
+            blk(ctx, px + 13, py + 10, 4, 14, "#6b4423")
+            blk(ctx, px + 10, py + 10, 10, 4, "#ff5f4e")
+            blk(ctx, px + 10, py + 12, 10, 2, "#ffd23d")
           }
         } else if (id === "fall") {
           if (seed === 0) {
@@ -2161,6 +2307,12 @@
             blk(ctx, px + 14, py + 4, 4, 14, "#5a3a42")
             blk(ctx, px + 13, py + 12, 6, 8, "#e05d8a")
             blk(ctx, px + 13, py + 14, 6, 3, "#ffc4dd")
+          } else if (seed === 4) {
+            blk(ctx, px + 13, py + 12, 2, 8, "#c95a4e")
+            blk(ctx, px + 13, py + 8, 5, 4, "#e84848")
+            blk(ctx, px + 12, py + 7, 7, 2, "#ffc4dd")
+            blk(ctx, px + 11, py + 14, 3, 2, "#ffc4dd")
+            blk(ctx, px + 17, py + 14, 3, 2, "#ffc4dd")
           }
         } else if (id === "winter") {
           if (seed === 0) {
@@ -2227,24 +2379,26 @@
             blk(ctx, px + 14, py + 8, 4, 2, "#fff")
             blk(ctx, px + 10, py + 14, 10, 2, "#3f7a2f")
           }
-        } else if (id === "retro") {
+        } else if (id === "cyber") {
           if (seed === 0) {
             blk(ctx, px + 15, py + 2, 2, 16, "#12081f")
-            blk(ctx, px + 11, py, 10, 4, "#ff3cc8")
+            blk(ctx, px + 11, py, 10, 4, "#ff4f8a")
           } else if (seed === 13) {
-            blk(ctx, px + 9, py + 8, 14, 12, "#3a0a2e")
-            blk(ctx, px + 10, py + 9, 6, 6, "#7ae7ff")
-            blk(ctx, px + 11, py + 10, 4, 4, "#1c1030")
-            blk(ctx, px + 10, py + 17, 6, 2, "#ff3cc8")
+            blk(ctx, px + 9, py + 8, 14, 12, "#1c2750")
+            blk(ctx, px + 10, py + 9, 6, 6, "#00e5ff")
+            blk(ctx, px + 11, py + 10, 4, 4, "#0a0f2e")
+            blk(ctx, px + 10, py + 17, 6, 2, "#ffe23d")
           }
-        } else if (id === "galaxy") {
+        } else if (id === "candy") {
           if (seed === 0) {
-            blk(ctx, px + 8, py + 8, 16, 14, "#151f44")
-            blk(ctx, px + 9, py + 9, 14, 3, "#243060")
+            blk(ctx, px + 8, py + 8, 16, 14, "#ff9ec4")
+            blk(ctx, px + 9, py + 9, 14, 3, "#ffc4e0")
+            blk(ctx, px + 13, py + 14, 2, 2, "#fff")
+            blk(ctx, px + 17, py + 14, 2, 2, "#fff")
           } else if (seed === 13) {
-            blk(ctx, px + 14, py + 12, 3, 8, "#3a4a8a")
-            blk(ctx, px + 11, py + 8, 9, 5, "#8a6fe0")
-            blk(ctx, px + 12, py + 6, 3, 3, "#3fffd0")
+            blk(ctx, px + 14, py + 12, 3, 8, "#fff")
+            blk(ctx, px + 11, py + 8, 9, 5, "#c96fd6")
+            blk(ctx, px + 12, py + 6, 3, 3, "#ff5f8a")
           }
         }
       }
@@ -2254,10 +2408,10 @@
         const n =
           SEASON.id === "winter" || SEASON.id === "sakura" || SEASON.id === "fall"
             ? 60
-            : SEASON.id === "galaxy"
-              ? 0
-              : SEASON.id === "retro"
-                ? 0
+            : SEASON.id === "candy"
+              ? 40
+              : SEASON.id === "cyber"
+                ? 30
                 : 24
         FX = Array.from({ length: n }, () => ({
           x: rnd(0, 1024),
@@ -2280,16 +2434,23 @@
         }
       }
       function fxDraw(ctx, now) {
-        if (SEASON.id === "galaxy") {
+        if (SEASON.id === "cyber") {
           for (let i = 0; i < 60; i++) {
             const sx = (i * 137) % 1024
             const sy = (i * 211) % 640
             const a = 0.3 + 0.5 * Math.abs(Math.sin(now / 700 + i))
-            blk(ctx, sx, sy, 2, 2, "rgba(255,255,255," + a.toFixed(2) + ")")
+            blk(ctx, sx, sy, 2, 2, "rgba(0,229,255," + a.toFixed(2) + ")")
           }
           return
         }
-        if (SEASON.id === "retro") return
+        if (SEASON.id === "candy") {
+          const cols = ["#ff8ab8", "#c9a5ff", "#7ae0a8", "#ffd23d"]
+          for (let i = 0; i < FX.length; i++) {
+            const p = FX[i]
+            blk(ctx, p.x, p.y, p.s, p.s, cols[i % cols.length])
+          }
+          return
+        }
         const col =
           SEASON.id === "winter"
             ? "#f2faff"
@@ -2324,12 +2485,39 @@
           blk(ctx, x - 7, y - 14, 4, 3, "#fff")
           blk(ctx, x - 6, y - 15, 2, 2, "#ff8ab8")
           blk(ctx, x + 2, y - 15, 3, 3, "#ffd23d")
-        } else if (id === "retro") {
-          blk(ctx, x - 5, y - 8, 10, 2, "#ff3cc8")
-          blk(ctx, x - 5, y - 7, 10, 1, "#7ae7ff")
-        } else if (id === "galaxy") {
-          blk(ctx, x + 6, y - 16, 1, 6, "#c39bff")
-          blk(ctx, x + 6, y - 18, 3, 3, "#3fffd0")
+        } else if (id === "cyber") {
+          blk(ctx, x - 5, y - 8, 10, 2, "#00e5ff")
+          blk(ctx, x - 5, y - 7, 10, 1, "#ff4f8a")
+        } else if (id === "candy") {
+          blk(ctx, x + 6, y - 16, 1, 6, "#c96fd6")
+          blk(ctx, x + 6, y - 18, 3, 3, "#ff5f8a")
+          blk(ctx, x - 6, y - 4, 3, 3, "#ffd23d")
+        }
+      }
+
+      const FX_DEFS = {
+        summer: { n: 14, icons: ["\u{1F6EB}", "\u{1F420}", "\u{1F429}", "\u{1F3D6}"], size: 20, dur: 12, up: true },
+        fall: { n: 16, icons: ["\u{1F342}", "\u{1F341}", "\u{1F383}", "\u{1F987}"], size: 22, dur: 13 },
+        sakura: { n: 18, icons: ["\u{1F338}", "\u{1F338}", "\u{1F390}", "\u{1F361}"], size: 20, dur: 12 },
+        winter: { n: 18, icons: ["\u2744", "\u26C4", "\u{1F328}", "\u{1F9CA}"], size: 18, dur: 14 },
+        spring: { n: 16, icons: ["\u{1F337}", "\u{1F98B}", "\u{1F33C}", "\u2600"], size: 20, dur: 12, up: true },
+        cyber: { n: 16, icons: ["\u26A1", "\u{1F306}", "\u{1F6F0}", "\u{1F7E0}"], size: 22, dur: 8 },
+        candy: { n: 18, icons: ["\u{1F36C}", "\u{1F36D}", "\u{1F9C1}", "\u{1F369}"], size: 20, dur: 10, up: true },
+      }
+      function setBgFx() {
+        const fx = $("fx")
+        if (!fx) return
+        const def = FX_DEFS[SEASON.id] || FX_DEFS.spring
+        fx.innerHTML = ""
+        for (let i = 0; i < def.n; i++) {
+          const s = document.createElement("span")
+          s.textContent = def.icons[i % def.icons.length]
+          s.style.left = Math.random() * 96 + "%"
+          s.style.fontSize = def.size + Math.random() * 8 + "px"
+          s.style.animationDuration = def.dur + "s"
+          s.style.animationDelay = -(Math.random() * def.dur) + "s"
+          if (def.up && Math.random() < 0.45) s.className = "up"
+          fx.appendChild(s)
         }
       }
 
@@ -2338,9 +2526,11 @@
         Object.assign(TEAM_HOME, S.team.home)
         Object.assign(TEAM_AWAY, S.team.away)
         Object.assign(TEAM_PAL, S.team.pal)
+        setBgFx()
         if (!document.documentElement) return
         const r = document.documentElement
         const set = (k, v) => r.style.setProperty(k, v)
+        set("--bg1", shade(S.bar, 2))
         set("--bg", S.bg)
         set("--panel", S.panel)
         set("--cream", S.cream)
@@ -2400,9 +2590,23 @@
         backToWorld()
         toast("SAVE DATA ERASED")
       }
+      function fitMatch() {
+        for (const id of ["game-canvas", "rally-canvas"]) {
+          const c = $(id)
+          if (!c || typeof c.getBoundingClientRect !== "function") continue
+          const r = c.getBoundingClientRect()
+          if (r.width && r.height) {
+            c.width = Math.max(100, Math.round(r.width))
+            c.height = Math.max(100, Math.round(r.height))
+          }
+        }
+      }
       function show(id) {
         document.querySelectorAll(".screen").forEach((s) => s.classList.remove("on"))
         $(id).classList.add("on")
+        if (id === "s-game" || id === "s-rally") {
+          requestAnimationFrame(fitMatch)
+        }
         SFX.click()
         if (id === "s-title") renderTitleStats()
         if (id === "s-settings") {
@@ -2986,6 +3190,51 @@
         },
       ]
 
+      const BUILD_THEMES = {
+        summer: [
+          { wall: "#f2d9a8", roof: "#ff7a2e", door: "#6b4423" },
+          { wall: "#3fc7d6", roof: "#f4f4f4", door: "#0f3a5a" },
+          { wall: "#ff9a2e", roof: "#ffd23d", door: "#6b4423" },
+          { wall: "#f4f4f4", roof: "#e84848", door: "#2b2b33" },
+        ],
+        fall: [
+          { wall: "#a85f2b", roof: "#e05b3d", door: "#4a2a14" },
+          { wall: "#c9a227", roof: "#8a6a1a", door: "#3a2418" },
+          { wall: "#ff7a2e", roof: "#d85f1f", door: "#4a2a14" },
+          { wall: "#6e4520", roof: "#3f7a2f", door: "#2a2418" },
+        ],
+        sakura: [
+          { wall: "#d84848", roof: "#2a1f2a", door: "#7a1f1f" },
+          { wall: "#e05555", roof: "#3a2a3a", door: "#7a1f1f" },
+          { wall: "#c94040", roof: "#2a1f2a", door: "#7a1f1f" },
+          { wall: "#e84848", roof: "#3a2a3a", door: "#7a1f1f" },
+        ],
+        winter: [
+          { wall: "#cfe3ef", roof: "#e84848", door: "#1f3a4a" },
+          { wall: "#bfe3f4", roof: "#3fb9d6", door: "#0f2a3a" },
+          { wall: "#a8d4ea", roof: "#ff8a2e", door: "#1f3a4a" },
+          { wall: "#8ab8d8", roof: "#21a05a", door: "#0f2a3a" },
+        ],
+        spring: [
+          { wall: "#ffd9e8", roof: "#ff8ab8", door: "#7a4a5a" },
+          { wall: "#d9f2e3", roof: "#7fd69f", door: "#2a5a3a" },
+          { wall: "#fff3c4", roof: "#ffd23d", door: "#6b5a2a" },
+          { wall: "#e3e9ff", roof: "#7fb2ff", door: "#3a4a6a" },
+        ],
+        cyber: [
+          { wall: "#1c2750", roof: "#00e5ff", door: "#0a1230" },
+          { wall: "#222e5e", roof: "#ff4f8a", door: "#0a1230" },
+          { wall: "#182246", roof: "#ffe23d", door: "#0a1230" },
+          { wall: "#26306a", roof: "#3fffd0", door: "#0a1230" },
+        ],
+        candy: [
+          { wall: "#ffb3c9", roof: "#ff5f8a", door: "#7a2a4a" },
+          { wall: "#c9a5ff", roof: "#ffd23d", door: "#4a2a6a" },
+          { wall: "#7ae0a8", roof: "#3fd6a5", door: "#1f5a3a" },
+          { wall: "#ffd9a0", roof: "#ff9a2e", door: "#6b3a1f" },
+        ],
+      }
+
       const NPCS = {
         1: {
           name: "GRANDMA DINK",
@@ -3238,6 +3487,7 @@
         const wall = b.wall,
           roof = b.roof
         if (!pal) pal = [roof]
+        const SID = SEASON.id
         ctx.fillStyle = "rgba(0,0,0,0.3)"
         ctx.beginPath()
         ctx.ellipse(x + w / 2, y + h + 8, w / 2 + 8, 10, 0, 0, Math.PI * 2)
@@ -3269,6 +3519,45 @@
         ctx.fillRect(x + w / 2 - 8, y - rH, 16, 4)
         ctx.fillStyle = shade(roof, 0.6)
         ctx.fillRect(x - o, y + 10, w + o * 2, 3)
+        if (SID === "sakura") {
+          const eave = "#1c1420"
+          ctx.fillStyle = eave
+          ctx.beginPath()
+          ctx.moveTo(x - o - 7, y + 10)
+          ctx.lineTo(x - o + 1, y + 10)
+          ctx.lineTo(x - o + 1, y + 5)
+          ctx.closePath()
+          ctx.fill()
+          ctx.beginPath()
+          ctx.moveTo(x + w + o + 7, y + 10)
+          ctx.lineTo(x + w + o - 1, y + 10)
+          ctx.lineTo(x + w + o - 1, y + 5)
+          ctx.closePath()
+          ctx.fill()
+          ctx.fillStyle = "#ffd23d"
+          ctx.fillRect(x + w / 2 - 1, yTop - 5, 2, 5)
+          ctx.fillStyle = "#fff"
+          ctx.fillRect(x + w / 2 - 2, yTop - 6, 4, 2)
+        } else if (SID === "cyber") {
+          ctx.fillStyle = "#ff4f8a"
+          ctx.fillRect(x + w / 2 - 10, y - rH, 20, 2)
+          ctx.fillStyle = "rgba(255,79,138,0.25)"
+          ctx.fillRect(x + w / 2 - 13, y - rH - 2, 26, 6)
+        } else if (SID === "candy") {
+          ctx.fillStyle = "#fff"
+          ctx.fillRect(x - o, y + 10, w + o * 2, 2)
+          ctx.fillStyle = "#ff5f8a"
+          for (let sc = x - o + 2; sc < x + w + o - 2; sc += 8) {
+            ctx.beginPath()
+            ctx.arc(sc + 4, y + 11, 3, 0, Math.PI, true)
+            ctx.fill()
+          }
+        } else if (SID === "winter") {
+          ctx.fillStyle = "#f4faff"
+          ctx.fillRect(x - o, y + 9, w + o * 2, 3)
+          ctx.fillStyle = "rgba(255,255,255,0.8)"
+          ctx.fillRect(x + w / 2 - 8, y - rH, 16, 3)
+        }
         ctx.fillStyle = shade(wall, 0.7)
         ctx.beginPath()
         ctx.moveTo(x + w, y + 2)
@@ -3302,13 +3591,32 @@
               const wx = wx0 + i * (win + 10)
               ctx.fillStyle = "#101828"
               ctx.fillRect(wx - 3, wy - 3, win + 6, win + 6)
-              ctx.fillStyle = "#cfeaff"
-              ctx.fillRect(wx, wy, win, win)
-              ctx.fillStyle = "rgba(255,255,255,0.6)"
-              ctx.fillRect(wx + 1, wy + 1, 3, 3)
-              ctx.fillStyle = "#101828"
-              ctx.fillRect(wx + win / 2 - 1, wy, 2, win)
-              ctx.fillRect(wx, wy + win / 2 - 1, win, 2)
+              if (SID === "cyber") {
+                ctx.fillStyle = "rgba(0,229,255,0.28)"
+                ctx.fillRect(wx - 5, wy - 5, win + 10, win + 10)
+                ctx.fillStyle = "#00e5ff"
+                ctx.fillRect(wx, wy, win, win)
+                ctx.fillStyle = "rgba(255,255,255,0.7)"
+                ctx.fillRect(wx + 1, wy + 1, 3, 3)
+                ctx.fillStyle = "#0a0f2e"
+                ctx.fillRect(wx + win / 2 - 1, wy, 2, win)
+                ctx.fillRect(wx, wy + win / 2 - 1, win, 2)
+              } else if (SID === "candy") {
+                ctx.fillStyle = "#fff3f8"
+                ctx.fillRect(wx, wy, win, win)
+                ctx.fillStyle = "#ffd23d"
+                ctx.fillRect(wx + 1, wy + 1, 4, 4)
+                ctx.fillStyle = "#ff8ab8"
+                ctx.fillRect(wx + win - 5, wy + win - 5, 4, 4)
+              } else {
+                ctx.fillStyle = "#cfeaff"
+                ctx.fillRect(wx, wy, win, win)
+                ctx.fillStyle = "rgba(255,255,255,0.6)"
+                ctx.fillRect(wx + 1, wy + 1, 3, 3)
+                ctx.fillStyle = "#101828"
+                ctx.fillRect(wx + win / 2 - 1, wy, 2, win)
+                ctx.fillRect(wx, wy + win / 2 - 1, win, 2)
+              }
               ctx.fillStyle = shade(wall, 0.7)
               ctx.fillRect(wx - 3, wy + win + 2, win + 6, 3)
             }
@@ -3336,21 +3644,62 @@
         ctx.fillRect(dx - 10, dy - 6, dw + 20, 5)
         ctx.fillStyle = shade(b.awning, 0.7)
         ctx.fillRect(dx - 10, dy - 1, dw + 20, 2)
+        if (SID === "candy") {
+          ctx.fillStyle = "#fff"
+          for (let cs = dx - 10; cs < dx + dw + 10; cs += 6) ctx.fillRect(cs, dy - 6, 3, 5)
+        }
+        if (SID === "cyber") {
+          ctx.fillStyle = "rgba(0,229,255,0.3)"
+          ctx.fillRect(dx - 7, dy - 8, dw + 14, 9)
+          ctx.fillStyle = "#00e5ff"
+          ctx.fillRect(dx - 6, dy - 7, dw + 12, 2)
+        }
+        if (SID === "sakura" && h >= 80) {
+          ctx.fillStyle = "#1c1420"
+          ctx.fillRect(dx - 24, dy + 2, 4, 18)
+          ctx.fillRect(dx + dw + 20, dy + 2, 4, 18)
+          const lan = (lx, ly) => {
+            ctx.fillStyle = "#e84848"
+            ctx.fillRect(lx - 5, ly, 10, 12)
+            ctx.fillStyle = "#ff8a8a"
+            ctx.fillRect(lx - 5, ly, 10, 3)
+            ctx.fillStyle = "#7a1f1f"
+            ctx.fillRect(lx - 2, ly - 2, 4, 2)
+            ctx.fillRect(lx - 2, ly + 12, 4, 2)
+          }
+          lan(dx - 22, dy + 20)
+          lan(dx + dw + 18, dy + 20)
+        }
         const sw = Math.min(w - 16, 116)
         const shh = 20
         const sx = x + w / 2 - sw / 2,
           sy = y + 3
-        ctx.fillStyle = "#101828"
+        const sig = {
+          summer: { frame: "#7a5a2a", plate: "#f2d9a8", plate2: "#d9b878", text: "#1d4257" },
+          fall: { frame: "#3a2418", plate: "#8a5a2b", plate2: "#6e4520", text: "#ffd23d" },
+          sakura: { frame: "#7a1f1f", plate: "#e84848", plate2: "#b83030", text: "#ffe9b3" },
+          winter: { frame: "#1f3a4a", plate: "#bfe3f4", plate2: "#8ab8d8", text: "#123a52" },
+          spring: { frame: "#5a3a5a", plate: "#ffd9e8", plate2: "#f2b8d0", text: "#7a2a5a" },
+          cyber: { frame: "#0a1230", plate: "#141c3e", plate2: "#1c2750", text: "#00e5ff" },
+          candy: { frame: "#7a2a4a", plate: "#ff5f8a", plate2: "#e0486a", text: "#fff" },
+        }[SID] || { frame: "#101828", plate: "#8a5a2b", plate2: "#6e4520", text: "#ffd23d" }
+        ctx.fillStyle = sig.frame
         ctx.fillRect(sx - 3, sy - 3, sw + 6, shh + 6)
-        ctx.fillStyle = "#8a5a2b"
+        ctx.fillStyle = sig.plate
         ctx.fillRect(sx, sy, sw, shh)
-        ctx.fillStyle = "#6e4520"
+        ctx.fillStyle = sig.plate2
         ctx.fillRect(sx, sy + shh - 4, sw, 4)
-        ctx.fillStyle = "#ffd23d"
+        ctx.fillStyle = sig.text
         ctx.font = "8px 'Press Start 2P', monospace"
         ctx.textAlign = "center"
         ctx.fillText(b.label, x + w / 2, sy + 14)
-        ctx.fillStyle = "#7a7366"
+        if (SID === "candy") {
+          ctx.fillStyle = "#fff"
+          ctx.fillRect(sx + 4, sy + shh - 4, 3, 2)
+          ctx.fillRect(sx + 9, sy + shh - 4, 3, 2)
+          ctx.fillRect(sx + sw - 12, sy + shh - 4, 3, 2)
+        }
+        ctx.fillStyle = sig.frame
         ctx.fillRect(sx + 5, y - 2, 2, 6)
         ctx.fillRect(sx + sw - 7, y - 2, 2, 6)
       }
@@ -3457,6 +3806,44 @@
         blk(ctx, x + 20, y + 20, 3, 3, "#ffffff")
       }
 
+      function summerSurfboard(ctx, x, y, tilt, colors) {
+        const lean = tilt || 0
+        for (let k = 0; k < 3; k++) {
+          const ly = y - k * 2
+          const ox = lean * k
+          blk(ctx, x + 6 + ox, ly, 3, 24, "#fff")
+          blk(ctx, x + 5 + ox, ly + 22, 6, 3, colors[k % colors.length])
+        }
+        blk(ctx, x + 4 + lean * 2, y - 2, 7, 4, colors[0])
+        blk(ctx, x + 3 + lean * 2, y + 24, 8, 3, "#ffd23d")
+      }
+      function summerSurfboards(ctx) {
+        const x1 = 3 * OW.t + 8
+        const y1 = 12 * OW.t + 14
+        summerSurfboard(ctx, x1, y1, 0, ["#ff5f4e", "#3fc7d6", "#ffd23d"])
+        const x2 = 33 * OW.t + 10
+        const y2 = 6 * OW.t + 16
+        summerSurfboard(ctx, x2, y2, 1, ["#ff8ab8", "#3fd6a5", "#4f8fff"])
+      }
+      function sakuraLanterns(ctx) {
+        const spots = [
+          { x: 11, y: 3 },
+          { x: 22, y: 3 },
+          { x: 3, y: 17 },
+          { x: 34, y: 19 },
+        ]
+        for (const s of spots) {
+          const x = s.x * OW.t + 12
+          const y = s.y * OW.t
+          blk(ctx, x + 4, y + 2, 2, 6, "#5a3a42")
+          blk(ctx, x + 1, y + 8, 8, 8, "#e84848")
+          blk(ctx, x + 1, y + 8, 8, 2, "#ffb3b3")
+          blk(ctx, x + 3, y + 16, 4, 2, "#7a1f1f")
+          blk(ctx, x + 3, y + 6, 1, 2, "#7a1f1f")
+          blk(ctx, x + 6, y + 6, 1, 2, "#7a1f1f")
+        }
+      }
+
       function buildStatic() {
         const cv = document.createElement("canvas")
         cv.width = OW.w * OW.t
@@ -3527,6 +3914,13 @@
         sign(18 * T, "DOUBLES", "QUIZ OR PLAY")
         BUILDINGS.forEach((b, i) => {
           b.awning = SEASON.roofs[(i + 2) % SEASON.roofs.length]
+          const th = BUILD_THEMES[SEASON.id]
+          if (th) {
+            const c = th[i % th.length]
+            b.wall = c.wall
+            b.roof = c.roof
+            b.doorCol = c.door
+          }
           drawBuilding3D(ctx, b, SEASON.roofs)
         })
         drawWelcomeSign(ctx)
@@ -3535,6 +3929,10 @@
           winterBigTree(ctx)
           winterSanta(ctx)
           winterGarland(ctx)
+        } else if (SEASON.id === "summer") {
+          summerSurfboards(ctx)
+        } else if (SEASON.id === "sakura") {
+          sakuraLanterns(ctx)
         }
         OW.static = cv
       }
@@ -4769,6 +5167,8 @@
         $("quiz-count").textContent = "QUESTION " + (CUR.qi + 1) + "/" + u.quiz.length
         $("quiz-prog").style.width = ((CUR.qi + 1) / u.quiz.length) * 100 + "%"
         $("quiz-q").textContent = q.q
+        $("quiz-q").style.display = "block"
+        $("quiz-score").style.display = "none"
         $("quiz-fb").style.display = "none"
         const box = $("quiz-opts")
         box.innerHTML = ""
@@ -4830,9 +5230,8 @@
         if (CUR.correct > m.best) m.best = CUR.correct
         m.lessons = Math.max(m.lessons, u.lessons.length)
         save()
-        const box = $("quiz-card")
         const stars = CUR.correct >= 6 ? "\u2605\u2605\u2605" : CUR.correct >= 4 ? "\u2605\u2605" : "\u2605"
-        box.innerHTML =
+        $("quiz-score").innerHTML =
           "<div class='quiz-score'>" +
           CUR.correct +
           "/" +
@@ -4851,6 +5250,8 @@
               u.title +
               " IS IN THE BOOKS.</div>"
             : "<div class='text-small text-dim center' style='line-height:2'>SCORE 4 OR BETTER TO MASTER THIS UNIT. REREAD THE LESSONS AND TRY AGAIN.</div>")
+        $("quiz-score").style.display = "block"
+        $("quiz-q").style.display = "none"
         $("quiz-opts").innerHTML = ""
         $("quiz-fb").style.display = "none"
         CUR.done = true
@@ -5567,7 +5968,7 @@
       $("game-canvas").addEventListener("click", (e) => {
         if (G.phase !== "question" || !G.scenario || G.scenario.type !== "zone") return
         const rect = $("game-canvas").getBoundingClientRect()
-        const sx = 480 / rect.width
+        const sx = $("game-canvas").width / rect.width
         const x = (e.clientX - rect.left) * sx
         const y = (e.clientY - rect.top) * sx
         G.click = { x, y }
@@ -5615,8 +6016,8 @@
         burst: [],
         lastT: 0,
       }
-      const R_HT = 0.14
-      const R_SPD = 0.75
+      const R_HT = 0.16
+      const R_SPD = 0.78
       const R_CPUSPD = 0.5
       const R_PALSPD = 0.46
       const R_SWEET = 0.8
@@ -5839,8 +6240,8 @@
         const you = R.players.you
         const ball = R.ball
         const d = Math.hypot(you.x - ball.x, you.y - ball.y)
-        if (R.phase !== "serve" && d > R_HT + 0.03) {
-          rallyFloat(you.x, you.y - 0.08, "TOO FAR!", "#ff7a2e")
+        if (R.phase !== "serve" && d > R_HT + 0.05) {
+          rallyFloat(you.x, you.y - 0.08, "STEP IN TO HIT", "#ff7a2e")
           return
         }
         const hit = R.charge
@@ -5866,9 +6267,9 @@
         let mx = 0,
           my = 0
         if (OW.keys["arrowdown"] || OW.keys["s"]) my = 1
-        else if (OW.keys["arrowup"] || OW.keys["w"]) my = -1
-        else if (OW.keys["arrowleft"] || OW.keys["a"]) mx = -1
-        else if (OW.keys["arrowright"] || OW.keys["d"]) mx = 1
+        if (OW.keys["arrowup"] || OW.keys["w"]) my = -1
+        if (OW.keys["arrowleft"] || OW.keys["a"]) mx = -1
+        if (OW.keys["arrowright"] || OW.keys["d"]) mx = 1
         if (mx || my) {
           const d = Math.hypot(mx, my)
           you.x = clamp(you.x + (mx / d) * R_SPD * dt, 0.03, 0.97)
@@ -5883,7 +6284,7 @@
           pal.y += clamp(0.82 - pal.y, -R_PALSPD * dt, R_PALSPD * dt)
         }
         if (R.charging) {
-          R.charge = clamp(R.charge + R.chargeDir * 1.3 * dt, 0, 1)
+          R.charge = clamp(R.charge + R.chargeDir * 0.85 * dt, 0, 1)
           if (R.charge >= 1) {
             R.charge = 1
             R.chargeDir = -1
@@ -5987,29 +6388,35 @@
         const c2 = R.players.c2
         const ball = R.ball
         const canAim = R.phase === "serve" || R.phase === "flight" || R.phase === "wait"
+        const showAim = R.charging || (R.phase === "serve" && R.serve)
         if (canAim && (R.phase !== "serve" || R.serve)) {
           const ap = m([you.x, you.y])
           const at = m([R.aim.x, R.aim.y])
-          ctx.strokeStyle = "rgba(255,210,61,0.75)"
-          ctx.lineWidth = 2
-          ctx.setLineDash([5, 5])
-          ctx.beginPath()
-          ctx.moveTo(ap[0], ap[1])
-          ctx.lineTo(at[0], at[1])
-          ctx.stroke()
-          ctx.setLineDash([])
-          ctx.fillStyle = "#ffd23d"
+          if (showAim) {
+            ctx.strokeStyle = "rgba(255,210,61,0.75)"
+            ctx.lineWidth = 2
+            ctx.setLineDash([5, 5])
+            ctx.beginPath()
+            ctx.moveTo(ap[0], ap[1])
+            ctx.lineTo(at[0], at[1])
+            ctx.stroke()
+            ctx.setLineDash([])
+          }
+          ctx.fillStyle = showAim ? "#ffd23d" : "rgba(255,210,61,0.35)"
           ctx.fillRect(at[0] - 3, at[1] - 3, 6, 6)
         }
         if (R.phase === "wait" && R.returner === "you") {
-          ctx.strokeStyle = "rgba(255,210,61,0.55)"
-          ctx.lineWidth = 1
-          ctx.setLineDash([3, 4])
           const hp = m([you.x, you.y])
+          const pulse = 0.4 + 0.6 * Math.abs(Math.sin(now / 200))
+          ctx.strokeStyle = "rgba(255,210,61," + pulse.toFixed(2) + ")"
+          ctx.lineWidth = 2
+          ctx.setLineDash([3, 4])
           ctx.beginPath()
           ctx.arc(hp[0], hp[1], R_HT * CR.w, 0, Math.PI * 2)
           ctx.stroke()
           ctx.setLineDash([])
+          ctx.fillStyle = "rgba(255,210,61,0.15)"
+          ctx.fillRect(hp[0] - R_HT * CR.w, hp[1] - R_HT * CR.w, R_HT * CR.w * 2, R_HT * CR.w * 2)
         }
         drawPlayer(ctx, ...m([you.x, you.y]), SAVE.custom, -1, SAVE.name, "you")
         drawPlayer(ctx, ...m([pal.x, pal.y]), SAVE.custom, -1, "PAL")
@@ -6018,17 +6425,18 @@
         const bf = m([ball.x, ball.y])
         ctx.fillStyle = "rgba(0,0,0,0.25)"
         ctx.fillRect(bf[0] - 5, bf[1] - 2, 10, 4)
-        const bh = m([ball.x, ball.y - R.arcH])
+        const bob = R.phase === "wait" ? Math.abs(Math.sin(now / 160)) * 8 : 0
+        const bh = m([ball.x, ball.y - R.arcH - bob / 100])
         R.trail.push([bh[0], bh[1]])
         if (R.trail.length > 10) R.trail.shift()
         drawBall(ctx, bh[0], bh[1], R.trail)
         if (R.charging) {
-          const mw = 210
-          const mh = 14
+          const mw = 220
+          const mh = 12
           const mx0 = cv.width / 2 - mw / 2
-          const my0 = cv.height - 30
-          ctx.fillStyle = "rgba(16,24,40,0.85)"
-          ctx.fillRect(mx0 - 4, my0 - 4, mw + 8, mh + 8)
+          const my0 = cv.height - 26
+          ctx.fillStyle = "rgba(16,24,40,0.88)"
+          ctx.fillRect(mx0 - 8, my0 - 14, mw + 16, mh + 22)
           ctx.fillStyle = "#3a2b00"
           ctx.fillRect(mx0, my0, mw, mh)
           ctx.fillStyle = "#21d07a"
@@ -6036,7 +6444,11 @@
           ctx.fillStyle = "#ffd23d"
           ctx.fillRect(mx0, my0 + mh / 2 - 2, Math.max(2, mw * R.charge), 4)
           ctx.fillStyle = "#f2f7ff"
-          ctx.fillRect(mx0 + R.charge * mw - 2, my0 - 3, 4, mh + 6)
+          ctx.fillRect(mx0 + R.charge * mw - 2, my0 - 4, 4, mh + 8)
+          ctx.fillStyle = "#ffd23d"
+          ctx.font = "8px 'Press Start 2P', monospace"
+          ctx.textAlign = "center"
+          ctx.fillText("CHARGE - RELEASE IN GREEN", cv.width / 2, my0 - 2)
         }
         R.floats = R.floats.filter((f) => now - f.t0 < 1300)
         for (const f of R.floats) {
@@ -6073,23 +6485,23 @@
         const hint =
           R.phase === "serve"
             ? R.serve
-              ? "YOUR SERVE — AIM WITH MOUSE, HOLD + RELEASE"
+              ? "YOUR SERVE — MOVE TO BALL, HOLD + RELEASE"
               : R.opp + " SERVING... GET SET"
             : R.phase === "wait"
               ? R.returner === "you"
                 ? "YOUR BALL! MOVE INTO THE RING AND HIT"
                 : "PAL / CPU RETURNING..."
-              : ""
+              : R.phase === "point"
+                ? ""
+                : ""
         $("rally-msg").textContent = hint
-          ? hint + "  //  MOVE: ARROWS  HIT: HOLD (CHARGE) + RELEASE (STRIKE)"
-          : "MOVE: ARROWS/WASD  HIT: HOLD CLICK (CHARGE), RELEASE (STRIKE)"
       }
 
       $("rally-canvas").addEventListener("mousemove", (e) => {
         const rect = $("rally-canvas").getBoundingClientRect()
         if (!R.lastCourt || !rect.width) return
-        const sx = 480 / rect.width
-        const sy = 620 / rect.height
+        const sx = $("rally-canvas").width / rect.width
+        const sy = $("rally-canvas").height / rect.height
         const x = (e.clientX - rect.left) * sx
         const y = (e.clientY - rect.top) * sy
         R.aim = {
