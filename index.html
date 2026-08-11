@@ -7947,13 +7947,21 @@
               badgeChal(pending)
               if ($("s-friends").classList.contains("on")) renderInvites()
               const pop = CHALS.find(
-                (c) => c.to === uid && c.type === "duel" && c.status === "pending" && !invitePopped.has(c.id),
+                (c) =>
+                  c.to === uid &&
+                  (c.type === "duel" || c.type === "lobby") &&
+                  c.status === "pending" &&
+                  !invitePopped.has(c.id),
               )
               if (pop && !$("s-friends").classList.contains("on")) {
                 invitePopped.add(pop.id)
                 INVITE = pop
                 $("invite-body").textContent =
-                  pop.fromName + " (" + fmtCode(pop.fromCode) + ") HAS CHALLENGED YOU TO A LIVE 1V1 RALLY!"
+                  pop.fromName +
+                  " (" +
+                  fmtCode(pop.fromCode) +
+                  ") HAS CHALLENGED YOU TO " +
+                  (pop.type === "duel" ? "A LIVE 1V1 RALLY!" : "WALK AROUND IN THE ACADEMY LOBBY!")
                 $("invite-modal").style.display = "flex"
               }
               const acc = CHALS.find(
