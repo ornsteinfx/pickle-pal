@@ -7573,10 +7573,12 @@
         return "#" + code.slice(0, 3) + "-Pal " + code.slice(3)
       }
       function normCode(raw) {
-        const c = String(raw || "")
+        const s = String(raw || "")
           .toUpperCase()
-          .replace(/[^0-9A-Z]/g, "")
-          .slice(0, 6)
+          .trim()
+        const m = s.match(/^#?([0-9A-Z]{3})-?PAL\s*([0-9A-Z]{3})$/i)
+        if (m) return m[1] + m[2]
+        const c = s.replace(/[^0-9A-Z]/g, "").slice(0, 6)
         return c.length === 6 ? c : ""
       }
       function loadFriends() {

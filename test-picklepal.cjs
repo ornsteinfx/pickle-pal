@@ -503,6 +503,10 @@ try {
   openFriends();
   if (!$('s-friends').classList.contains('on')) throw new Error('openFriends did not show friends');
   if (!$('fr-code').textContent) throw new Error('friends screen missing code');
+  if (normCode('#000-Pal 01L') !== '00001L') throw new Error('normCode failed on formatted code');
+  if (normCode('#000-Pal 01L').length !== 6) throw new Error('normCode length');
+  if (normCode('00001L') !== '00001L') throw new Error('normCode failed on raw code');
+  if (normCode('#abc-pal xyz') !== 'ABCXYZ') throw new Error('normCode lowercase formatted');
   MAIL = { letters: [{ id: 0, type: 'welcome', title: 'WELCOME', body: 'HELLO' }], newCount: 0 };
   openLetter(0);
   if ($('letter-modal').style.display !== 'flex') throw new Error('openLetter did not show modal');
