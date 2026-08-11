@@ -462,6 +462,224 @@
       .pf-input:focus {
         border-color: #3fd6a5;
       }
+      #ow-social {
+        position: absolute;
+        top: 12px;
+        right: 12px;
+        display: flex;
+        gap: 8px;
+        z-index: 20;
+      }
+      .soc-btn {
+        position: relative;
+        font-family: inherit;
+        font-size: 9px;
+        text-transform: uppercase;
+        color: #fff;
+        background-color: var(--blue);
+        border: 3px solid var(--ink-dark);
+        padding: 9px 12px;
+        cursor: pointer;
+        box-shadow: 0 4px 0 #0a1220;
+        line-height: 1.4;
+        text-align: center;
+      }
+      .soc-btn:active {
+        transform: translateY(3px);
+        box-shadow: none;
+      }
+      .soc-btn .badge {
+        position: absolute;
+        top: -8px;
+        right: -8px;
+        min-width: 18px;
+        height: 18px;
+        border-radius: 50%;
+        background: #e84848;
+        color: #fff;
+        font-size: 9px;
+        line-height: 18px;
+        text-align: center;
+        padding: 0 4px;
+        border: 2px solid var(--ink-dark);
+        display: none;
+      }
+      .soc-btn .badge.show {
+        display: block;
+      }
+      .mail-row {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 10px 12px;
+        border: 2px solid #1d3a5f;
+        border-radius: 8px;
+        margin-bottom: 8px;
+        background: #0d2240;
+        cursor: pointer;
+        text-align: left;
+        font-family: inherit;
+        color: #cfe8ff;
+        width: 100%;
+      }
+      .mail-row:hover {
+        border-color: #3fd6a5;
+      }
+      .mail-row .mail-ic {
+        font-size: 18px;
+        flex: none;
+      }
+      .mail-row .mail-title {
+        font-weight: bold;
+        font-size: 12px;
+        letter-spacing: 1px;
+      }
+      .mail-row .mail-sub {
+        font-size: 10px;
+        color: #8aa6c8;
+        margin-top: 3px;
+      }
+      .mail-row .mail-new {
+        margin-left: auto;
+        background: #e84848;
+        color: #fff;
+        font-size: 8px;
+        padding: 3px 7px;
+        border-radius: 4px;
+        letter-spacing: 1px;
+        flex: none;
+      }
+      .modal {
+        position: fixed;
+        left: 0;
+        right: 0;
+        top: 0;
+        bottom: 0;
+        background: rgba(6, 12, 8, 0.55);
+        display: none;
+        align-items: center;
+        justify-content: center;
+        z-index: 70;
+      }
+      .modal .dm-box {
+        background: var(--panel);
+        border: 4px solid var(--ink-dark);
+        box-shadow:
+          5px 5px 0 rgba(0, 0, 0, 0.55),
+          inset 0 0 0 2px #fff;
+        padding: 24px 22px 20px;
+        max-width: 460px;
+        width: 90%;
+      }
+      .modal .dm-title {
+        font-size: 14px;
+        color: var(--yellow);
+        letter-spacing: 1px;
+        margin-bottom: 10px;
+      }
+      .modal .dm-body {
+        font-size: 12px;
+        line-height: 1.9;
+        color: #cfe8ff;
+        white-space: pre-wrap;
+        max-height: 320px;
+        overflow-y: auto;
+        margin-bottom: 14px;
+      }
+      .modal .row {
+        gap: 12px;
+      }
+      .invite-row {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 8px 10px;
+        border: 2px solid #1d3a5f;
+        border-radius: 8px;
+        margin-bottom: 8px;
+        background: #0d2240;
+        font-size: 11px;
+      }
+      .invite-row .inv-type {
+        background: var(--yellow);
+        color: #3a2b00;
+        font-size: 8px;
+        padding: 3px 6px;
+        border-radius: 4px;
+        letter-spacing: 1px;
+        flex: none;
+      }
+      .invite-row .inv-name {
+        font-weight: bold;
+        color: #cfe8ff;
+      }
+      .invite-row .inv-actions {
+        margin-left: auto;
+        display: flex;
+        gap: 6px;
+        flex: none;
+      }
+      .invite-row button {
+        font-family: inherit;
+        font-size: 9px;
+        text-transform: uppercase;
+        border: 2px solid var(--ink-dark);
+        padding: 5px 8px;
+        cursor: pointer;
+        color: #fff;
+        background: var(--blue);
+      }
+      .invite-row button.ok {
+        background: var(--green2);
+      }
+      .invite-row button.no {
+        background: #e84848;
+      }
+      .mail-textarea,
+      .bug-textarea {
+        width: 100%;
+        box-sizing: border-box;
+        font-family: inherit;
+        font-size: 13px;
+        background: #0b1c34;
+        border: 3px solid #1d3a5f;
+        color: #3fd6a5;
+        padding: 10px;
+        resize: vertical;
+        outline: none;
+      }
+      .bug-textarea {
+        min-height: 110px;
+      }
+      #pvp-canvas {
+        width: 100%;
+        display: block;
+        background: #0b1c34;
+        border: 3px solid var(--ink-dark);
+      }
+      #pvp-over {
+        position: absolute;
+        left: 0;
+        right: 0;
+        top: 0;
+        bottom: 0;
+        background: rgba(6, 12, 8, 0.7);
+        display: none;
+        align-items: center;
+        justify-content: center;
+        z-index: 5;
+      }
+      #pvp-over .dm-box {
+        background: var(--panel);
+        border: 4px solid var(--ink-dark);
+        box-shadow:
+          5px 5px 0 rgba(0, 0, 0, 0.55),
+          inset 0 0 0 2px #fff;
+        padding: 24px 22px 20px;
+        max-width: 400px;
+        width: 90%;
+        text-align: center;
+      }
       #ow-hint {
         position: absolute;
         bottom: 14px;
@@ -1234,6 +1452,10 @@
             TROPHIES<br /><span id="ow-wins">0</span> WINS<br /><span id="ow-rank">ROOKIE</span> RANK
             <button class="btn mini" onclick="openProfile()">PROFILE</button>
           </div>
+          <div id="ow-social">
+            <button class="soc-btn" onclick="openInbox()">INBOX<span class="badge" id="badge-mail">0</span></button>
+            <button class="soc-btn" onclick="openFriends()">FRIENDS<span class="badge" id="badge-chal">0</span></button>
+          </div>
           <canvas id="ow-canvas" width="1280" height="768"></canvas>
           <div id="ow-hint">
             ARROWS / WASD: MOVE&nbsp;&nbsp;STEP ON A COURT: QUIZ OR PLAY&nbsp;&nbsp;SPACE: TALK&nbsp;&nbsp;ESC: NO
@@ -1440,6 +1662,82 @@
         </div>
       </section>
 
+      <section id="s-inbox" class="screen">
+        <div class="w-bar" style="background: #3d6b45">INBOX<span class="dim">PICKLE PAL MAIL</span></div>
+        <div class="w" style="margin-bottom: 16px">
+          <div id="mail-list"></div>
+          <div style="height: 12px"></div>
+          <div class="text-small text-dim" style="line-height: 1.8; margin-bottom: 10px">
+            YOU CAN'T WRITE LETTERS, BUT THE DEV DROPS NOTES HERE. SEE A PROBLEM? SEND A BUG REPORT.
+          </div>
+          <button class="btn red" onclick="openBugModal()">REPORT A BUG</button>
+        </div>
+        <button class="btn dark" onclick="backToWorld()">BACK TO THE ACADEMY</button>
+      </section>
+
+      <section id="s-friends" class="screen">
+        <div class="w-bar green">FRIENDS<span class="dim">PICKLE PAL ONLINE</span></div>
+        <div class="w">
+          <div class="text-big" style="margin-bottom: 6px">YOUR PICKLE CODE</div>
+          <div class="pal-code" id="fr-code">CONNECTING...</div>
+          <button class="btn yellow" onclick="copyCode()">COPY CODE</button>
+          <div style="height: 18px"></div>
+          <div class="text-big" style="margin-bottom: 10px">INVITES &amp; CHALLENGES</div>
+          <div id="fr-invites" class="text-small text-dim" style="line-height: 2"></div>
+          <div style="height: 16px"></div>
+          <div class="text-big" style="margin-bottom: 10px">ADD A FRIEND</div>
+          <div class="row" style="margin-bottom: 16px">
+            <input class="pf-input" id="fr-add" maxlength="14" placeholder="#XXX-Pal XXX" />
+            <button class="btn green" onclick="addFriendFromFriends()">ADD</button>
+          </div>
+          <div class="fb" id="fr-msg" style="display: none"></div>
+          <div class="text-big" style="margin-bottom: 10px">YOUR PALS <span class="dim" id="fr-count"></span></div>
+          <div id="fr-list"></div>
+          <div style="height: 16px"></div>
+          <button class="btn dark" onclick="backToWorld()">BACK TO THE ACADEMY</button>
+        </div>
+      </section>
+
+      <section id="s-pvp" class="screen">
+        <div class="w-bar" style="background: #7b3fa0">1V1 LIVE RALLY<span class="dim" id="pvp-status"></span></div>
+        <div class="match-stage" style="position: relative">
+          <canvas id="pvp-canvas"></canvas>
+          <div class="scoreboard sb-overlay">
+            <div class="side you">
+              <div class="lbl" id="pvp-you-lbl">YOU</div>
+              <div class="n" id="pvp-you">0</div>
+            </div>
+            <div class="vs">VS</div>
+            <div class="side cpu">
+              <div class="lbl" id="pvp-opp-lbl">OPPONENT</div>
+              <div class="n" id="pvp-opp">0</div>
+            </div>
+          </div>
+          <div class="quiz-panel" style="bottom: 52px">
+            <div id="pvp-msg" class="q-note"></div>
+          </div>
+          <div class="match-actions">
+            <div class="text-small text-dim" id="pvp-hint" style="text-align: right">FIRST TO 11, WIN BY 2</div>
+            <button class="btn dark" onclick="quitPvp()">FORFEIT</button>
+          </div>
+          <div id="pvp-over">
+            <div class="dm-box">
+              <div id="pvp-over-title">MATCH OVER</div>
+              <div class="row center" style="margin: 14px 0">
+                <div class="chip" style="flex: none">YOU<br /><span class="v" id="pvp-over-you">0</span></div>
+                <div class="chip" style="margin: 0 10px; flex: none">VS</div>
+                <div class="chip" style="flex: none">
+                  <span id="pvp-over-opp-lbl">OPPONENT</span><br /><span class="v" id="pvp-over-opp">0</span>
+                </div>
+              </div>
+              <div class="text-small text-dim" id="pvp-over-msg" style="line-height: 1.8; margin-bottom: 14px"></div>
+              <div class="text-big" id="pvp-over-coins" style="color: #b8860b; margin-bottom: 16px"></div>
+              <button class="btn dark" onclick="closePvp()">BACK TO THE ACADEMY</button>
+            </div>
+          </div>
+        </div>
+      </section>
+
       <section id="s-result" class="screen">
         <div class="w-bar">FINAL SCORE</div>
         <div class="w">
@@ -1474,6 +1772,41 @@
         <div class="tut-name">&#129476; MR. DILL SAYS...</div>
         <div class="tut-text" id="tut-text"></div>
         <div class="tut-arrow" id="tut-arrow">&#9660;</div>
+      </div>
+    </div>
+
+    <div id="letter-modal" class="modal">
+      <div class="dm-box">
+        <div class="dm-title" id="letter-title"></div>
+        <div class="dm-body" id="letter-body"></div>
+        <button class="btn dark" style="width: 100%" onclick="closeModal('letter-modal')">CLOSE</button>
+      </div>
+    </div>
+
+    <div id="bug-modal" class="modal">
+      <div class="dm-box">
+        <div class="dm-title">REPORT A BUG</div>
+        <div class="dm-body" style="max-height: none">
+          <div class="text-small text-dim" style="line-height: 1.8; margin-bottom: 8px">
+            TELL THE DEV WHAT WENT WRONG. YOUR NAME + CODE GO ALONG WITH IT.
+          </div>
+          <textarea class="bug-textarea" id="bug-text" placeholder="DESCRIBE THE BUG..." maxlength="2000"></textarea>
+        </div>
+        <div class="row">
+          <button class="btn green grow" onclick="sendBugReport()">SEND</button>
+          <button class="btn dark grow" onclick="closeModal('bug-modal')">CANCEL</button>
+        </div>
+      </div>
+    </div>
+
+    <div id="invite-modal" class="modal">
+      <div class="dm-box">
+        <div class="dm-title">&#9878; 1V1 CHALLENGE!</div>
+        <div class="dm-body" id="invite-body"></div>
+        <div class="row">
+          <button class="btn green grow" onclick="respondChallenge(0, true)">ACCEPT</button>
+          <button class="btn red grow" onclick="respondChallenge(0, false)">DECLINE</button>
+        </div>
       </div>
     </div>
 
@@ -2803,7 +3136,7 @@
         toast("SAVE DATA ERASED")
       }
       function fitMatch() {
-        for (const id of ["game-canvas", "rally-canvas"]) {
+        for (const id of ["game-canvas", "rally-canvas", "pvp-canvas"]) {
           const c = $(id)
           if (!c || typeof c.getBoundingClientRect !== "function") continue
           const r = c.getBoundingClientRect()
@@ -2816,7 +3149,7 @@
       function show(id) {
         document.querySelectorAll(".screen").forEach((s) => s.classList.remove("on"))
         $(id).classList.add("on")
-        if (id === "s-game" || id === "s-rally") {
+        if (id === "s-game" || id === "s-rally" || id === "s-pvp") {
           requestAnimationFrame(fitMatch)
         }
         SFX.click()
@@ -6962,6 +7295,7 @@
         if (OW.npcs[key]) delete OW.npcs[key]
         OW.keys = {}
         toast("TOUR COMPLETE! NOW GO DINK, PAL!")
+        claimWelcome()
       }
       function startTutorial() {
         TUT.active = true
@@ -7296,7 +7630,7 @@
         const code = getCode()
         if (!code) return
         const done = () => {
-          const msg = $("pf-msg")
+          const msg = $("s-friends").classList.contains("on") ? $("fr-msg") : $("pf-msg")
           msg.textContent = "COPIED: " + fmtCode(code)
           msg.style.color = "#3fd6a5"
           msg.style.display = "block"
@@ -7305,9 +7639,9 @@
           navigator.clipboard.writeText(fmtCode(code)).then(done, done)
         } else done()
       }
-      function addFriend() {
-        const code = normCode($("pf-add").value)
-        const msg = $("pf-msg")
+      function addFriendBy(inputId, msgId) {
+        const code = normCode($(inputId).value)
+        const msg = $(msgId)
         if (!code) {
           msg.textContent = "ENTER A VALID CODE LIKE #ABC-Pal 123"
           msg.style.color = "#e84848"
@@ -7328,26 +7662,42 @@
           return
         }
         fetch(ONLINE_API + "/api/status?codes=" + code)
-          .then((r) => r.json())
+          .then((r) => {
+            if (!r.ok) throw new Error("bad response")
+            return r.json()
+          })
           .then((d) => {
             const p = d.players && d.players[0]
-            if (!p || !p.uid) throw new Error("no such code")
+            if (!p || !p.uid) {
+              msg.textContent = "CODE NOT FOUND — HAS THEM PLAYED ONLINE YET?"
+              msg.style.color = "#e84848"
+              msg.style.display = "block"
+              return
+            }
             list.push(code)
             saveFriends(list)
             friendInfo[code] = { name: p.name || code }
-            $("pf-add").value = ""
+            $(inputId).value = ""
             msg.style.display = "none"
             renderProfile()
+            renderFriendList()
           })
           .catch(() => {
-            msg.textContent = "CODE NOT FOUND"
-            msg.style.color = "#e84848"
+            msg.textContent = "NETWORK ERROR — COULDN'T REACH SERVER"
+            msg.style.color = "#ffd23d"
             msg.style.display = "block"
           })
+      }
+      function addFriend() {
+        addFriendBy("pf-add", "pf-msg")
+      }
+      function addFriendFromFriends() {
+        addFriendBy("fr-add", "fr-msg")
       }
       function removeFriend(code) {
         saveFriends(loadFriends().filter((c) => c !== code))
         renderProfile()
+        renderFriendList()
       }
       function refreshFriends() {
         try {
@@ -7368,6 +7718,661 @@
         } catch (e) {}
       }
 
+      /* ================= ONLINE: MAIL / FRIENDS / 1V1 ================= */
+
+      function esc(s) {
+        return String(s == null ? "" : s)
+          .replace(/&/g, "&amp;")
+          .replace(/</g, "&lt;")
+          .replace(/>/g, "&gt;")
+          .replace(/"/g, "&quot;")
+      }
+
+      let MAIL = null
+      let CHALS = []
+      let INVITE = null
+      const invitePopped = new Set()
+
+      function badgeMail(n) {
+        const b = $("badge-mail")
+        b.textContent = n
+        b.classList.toggle("show", n > 0)
+      }
+      function badgeChal(n) {
+        const b = $("badge-chal")
+        b.textContent = n
+        b.classList.toggle("show", n > 0)
+      }
+      function openInbox() {
+        show("s-inbox")
+        refreshMail()
+      }
+      function refreshMail(notify) {
+        try {
+          if (typeof fetch !== "function") return
+          const uid = getUid()
+          if (!uid) return
+          fetch(ONLINE_API + "/api/mail?uid=" + encodeURIComponent(uid))
+            .then((r) => r.json())
+            .then((d) => {
+              if (!d || !d.ok) return
+              MAIL = d
+              badgeMail(d.newCount || 0)
+              if (notify && d.newCount > 0) {
+                toast(d.newCount + " NEW LETTER" + (d.newCount > 1 ? "S" : "") + " IN YOUR INBOX!")
+              }
+              if ($("s-inbox").classList.contains("on")) {
+                renderMail()
+                markMailSeen()
+              }
+            })
+            .catch(() => {})
+        } catch (e) {}
+      }
+      function markMailSeen() {
+        try {
+          if (typeof fetch !== "function") return
+          const uid = getUid()
+          if (!uid) return
+          fetch(ONLINE_API + "/api/mail/seen", {
+            method: "POST",
+            headers: { "content-type": "application/json" },
+            body: JSON.stringify({ uid }),
+          }).catch(() => {})
+        } catch (e) {}
+      }
+      function renderMail() {
+        if (!MAIL) return
+        const box = $("mail-list")
+        const letters = MAIL.letters || []
+        if (!letters.length) {
+          box.innerHTML = '<div class="text-small text-dim">NO MAIL YET. THE DEV DROPS NOTES HERE.</div>'
+          return
+        }
+        const n = Math.max(0, MAIL.newCount || 0)
+        box.innerHTML = letters
+          .map((l, i) => {
+            const tag = l.type === "welcome" ? "WELCOME LETTER" : "PATCH NOTES"
+            const ic = l.type === "welcome" ? "\uD83D\uDC8C" : "\uD83D\uDCCB"
+            const fresh = i >= letters.length - n ? '<span class="mail-new">NEW</span>' : ""
+            return (
+              '<button class="mail-row" onclick="openLetter(' +
+              l.id +
+              ')">' +
+              '<span class="mail-ic">' +
+              ic +
+              "</span>" +
+              '<span style="flex:1"><div class="mail-title">' +
+              esc(l.title) +
+              "</div>" +
+              '<div class="mail-sub">' +
+              tag +
+              "</div></span>" +
+              fresh +
+              "</button>"
+            )
+          })
+          .join("")
+      }
+      function openLetter(id) {
+        const l = ((MAIL && MAIL.letters) || []).find((m) => m.id === id)
+        if (!l) return
+        $("letter-title").textContent = l.title
+        $("letter-body").textContent = l.body
+        $("letter-modal").style.display = "flex"
+      }
+      function closeModal(id) {
+        const el = $(id)
+        if (el) el.style.display = "none"
+      }
+      function openBugModal() {
+        $("bug-text").value = ""
+        $("bug-modal").style.display = "flex"
+        try {
+          $("bug-text").focus()
+        } catch (e) {}
+      }
+      function sendBugReport() {
+        const text = String($("bug-text").value || "").trim()
+        if (!text) {
+          toast("DESCRIBE THE BUG FIRST")
+          return
+        }
+        try {
+          if (typeof fetch !== "function") return
+          fetch(ONLINE_API + "/api/bug", {
+            method: "POST",
+            headers: { "content-type": "application/json" },
+            body: JSON.stringify({ uid: getUid(), name: palName(), code: getCode(), text }),
+          })
+            .then((r) => r.json())
+            .then((d) => {
+              if (d && d.ok) {
+                $("bug-modal").style.display = "none"
+                toast("BUG REPORT SENT - THANKS PAL!")
+              } else toast("COULDN'T SEND REPORT")
+            })
+            .catch(() => toast("NETWORK ERROR"))
+        } catch (e) {}
+      }
+      function claimWelcome() {
+        try {
+          if (typeof fetch !== "function") return
+          const uid = getUid()
+          if (!uid) return
+          fetch(ONLINE_API + "/api/mail/claim", {
+            method: "POST",
+            headers: { "content-type": "application/json" },
+            body: JSON.stringify({ uid }),
+          })
+            .then((r) => r.json())
+            .then((d) => {
+              if (d && d.ok) refreshMail()
+            })
+            .catch(() => {})
+        } catch (e) {}
+      }
+
+      function openFriends() {
+        show("s-friends")
+        renderFriendScreen()
+      }
+      function renderFriendScreen() {
+        const code = getCode()
+        $("fr-code").textContent = code ? fmtCode(code) : "CONNECTING..."
+        renderFriendList()
+        refreshChallenges()
+      }
+      function renderFriendList() {
+        const list = loadFriends()
+        $("fr-count").textContent = list.length ? "(" + list.length + ")" : ""
+        const box = $("fr-list")
+        if (!list.length) {
+          box.innerHTML = '<div class="text-small text-dim">NO FRIENDS YET. ADD SOME WITH THEIR PICKLE CODE.</div>'
+          return
+        }
+        box.innerHTML = list
+          .map((c) => {
+            const on = onlineMap[c]
+            const name = (friendInfo[c] && friendInfo[c].name) || c
+            return (
+              '<div class="friend-row"><span class="dot ' +
+              (on ? "on" : "off") +
+              '"></span><span class="friend-name">' +
+              esc(name) +
+              '</span><span class="friend-code">' +
+              fmtCode(c) +
+              "</span>" +
+              '<button class="btn mini" onclick="challengeFriend(\'' +
+              c +
+              "','duel')\">1V1</button>" +
+              '<button class="btn mini" onclick="challengeFriend(\'' +
+              c +
+              "','lobby')\">LOBBY</button>" +
+              '<button class="friend-x" onclick="removeFriend(\'' +
+              c +
+              "')\">X</button></div>"
+            )
+          })
+          .join("")
+      }
+      function refreshChallenges() {
+        try {
+          if (typeof fetch !== "function") return
+          const uid = getUid()
+          if (!uid) return
+          fetch(ONLINE_API + "/api/challenges?uid=" + encodeURIComponent(uid))
+            .then((r) => r.json())
+            .then((d) => {
+              if (!d || !d.ok) return
+              CHALS = d.challenges || []
+              const pending = CHALS.filter((c) => c.to === uid && c.status === "pending").length
+              badgeChal(pending)
+              if ($("s-friends").classList.contains("on")) renderInvites()
+              const pop = CHALS.find(
+                (c) => c.to === uid && c.type === "duel" && c.status === "pending" && !invitePopped.has(c.id),
+              )
+              if (pop && !$("s-friends").classList.contains("on")) {
+                invitePopped.add(pop.id)
+                INVITE = pop
+                $("invite-body").textContent =
+                  pop.fromName + " (" + fmtCode(pop.fromCode) + ") HAS CHALLENGED YOU TO A LIVE 1V1 RALLY!"
+                $("invite-modal").style.display = "flex"
+              }
+            })
+            .catch(() => {})
+        } catch (e) {}
+      }
+      function renderInvites() {
+        const box = $("fr-invites")
+        const uid = getUid()
+        const pending = CHALS.filter((c) => c.to === uid && c.status === "pending")
+        if (!pending.length) {
+          box.textContent = "NO INVITES. SEND A 1V1 FROM A FRIEND'S ROW."
+          return
+        }
+        box.innerHTML = ""
+        for (const c of pending) {
+          const row = document.createElement("div")
+          row.className = "invite-row"
+          row.innerHTML =
+            '<span class="inv-type">' +
+            (c.type === "duel" ? "1V1" : "LOBBY") +
+            '</span><span class="inv-name">' +
+            esc(c.fromName) +
+            '</span><span class="inv-code">' +
+            fmtCode(c.fromCode) +
+            '</span><span class="inv-actions">' +
+            '<button class="ok" onclick="respondChallenge(' +
+            c.id +
+            ', true)">ACCEPT</button>' +
+            '<button class="no" onclick="respondChallenge(' +
+            c.id +
+            ', false)">DECLINE</button></span>'
+          box.appendChild(row)
+        }
+      }
+      function respondChallenge(id, accept) {
+        const uid = getUid()
+        const invite = id ? CHALS.find((c) => c.id === id) : INVITE
+        $("invite-modal").style.display = "none"
+        INVITE = null
+        if (!invite) return
+        try {
+          if (typeof fetch !== "function") return
+          fetch(ONLINE_API + "/api/challenge/respond", {
+            method: "POST",
+            headers: { "content-type": "application/json" },
+            body: JSON.stringify({ uid, id: invite.id, accept }),
+          })
+            .then((r) => r.json())
+            .then((d) => {
+              if (d && d.ok && accept && invite.type === "duel" && d.matchId) {
+                toast("CHALLENGE ACCEPTED! GET READY!")
+                openPvp(d.matchId, invite.fromName)
+              } else if (d && d.ok) {
+                toast(accept ? (invite.type === "lobby" ? "YOU'RE IN THE LOBBY!" : "CHALLENGE ACCEPTED!") : "DECLINED")
+              }
+              refreshChallenges()
+            })
+            .catch(() => {})
+        } catch (e) {}
+      }
+      function challengeFriend(code, type) {
+        if (!code) return
+        if (code === getCode()) {
+          toast("THAT'S YOUR OWN CODE!")
+          return
+        }
+        try {
+          if (typeof fetch !== "function") return
+          fetch(ONLINE_API + "/api/status?codes=" + code)
+            .then((r) => r.json())
+            .then((d) => {
+              const p = d.players && d.players[0]
+              if (!p || !p.uid) {
+                toast("CODE NOT FOUND")
+                return
+              }
+              if (!p.online) {
+                toast((p.name || "FRIEND") + " IS OFFLINE RIGHT NOW")
+                return
+              }
+              return fetch(ONLINE_API + "/api/challenge", {
+                method: "POST",
+                headers: { "content-type": "application/json" },
+                body: JSON.stringify({ from: getUid(), fromName: palName(), fromCode: getCode(), to: p.uid, type }),
+              })
+                .then((r) => r.json())
+                .then((d2) => {
+                  if (d2 && d2.ok) toast(type === "duel" ? "1V1 CHALLENGE SENT!" : "LOBBY INVITE SENT!")
+                  else toast("COULDN'T SEND CHALLENGE")
+                })
+            })
+            .catch(() => toast("NETWORK ERROR"))
+        } catch (e) {}
+      }
+
+      /* ================= 1V1 LIVE RALLY ================= */
+
+      let PVP = null
+
+      function wssBase() {
+        return (ONLINE_API.indexOf("https://") === 0 ? "wss://" : "ws://") + ONLINE_API.split("://")[1]
+      }
+      function openPvp(matchId, oppName) {
+        $("pvp-over").style.display = "none"
+        PVP = {
+          ws: null,
+          matchId,
+          side: 0,
+          you: { x: 0.5, y: 0.85 },
+          opp: { x: 0.5, y: 0.15 },
+          oppName: oppName || "OPPONENT",
+          flight: null,
+          ball: { x: 0.5, y: 0.5, arc: 0 },
+          wait: null,
+          sc: [0, 0],
+          phase: "idle",
+          aim: { x: 0.5, y: 0.35 },
+          cr: null,
+          lastT: 0,
+          waitTxt: "",
+          errTxt: "",
+          errT0: 0,
+          hitLock: false,
+          over: false,
+          raf: 0,
+          hb: null,
+        }
+        $("pvp-you").textContent = "0"
+        $("pvp-opp").textContent = "0"
+        $("pvp-you-lbl").textContent = SAVE.name || "YOU"
+        $("pvp-opp-lbl").textContent = PVP.oppName
+        $("pvp-status").textContent = "CONNECTING..."
+        $("pvp-msg").textContent = "WAITING FOR OPPONENT..."
+        $("pvp-hint").textContent = "FIRST TO 11, WIN BY 2"
+        show("s-pvp")
+        PVP.raf = requestAnimationFrame(pvpFrame)
+        connectPvp()
+      }
+      function connectPvp() {
+        if (!PVP) return
+        try {
+          if (typeof WebSocket === "undefined") {
+            $("pvp-status").textContent = "NO WEBSOCKETS"
+            return
+          }
+          const ws = new WebSocket(wssBase() + "/api/match/" + PVP.matchId)
+          PVP.ws = ws
+          ws.onopen = () => {
+            try {
+              ws.send(JSON.stringify({ t: "join", uid: getUid(), name: palName() }))
+            } catch (e) {}
+            PVP.hb = setInterval(() => {
+              try {
+                if (ws.readyState === 1) ws.send(JSON.stringify({ t: "hb" }))
+              } catch (e) {}
+            }, 500)
+          }
+          ws.onmessage = (ev) => {
+            let d
+            try {
+              d = JSON.parse(String(ev.data))
+            } catch (e) {
+              return
+            }
+            pvpMsg(d)
+          }
+          ws.onclose = () => {
+            if (PVP && PVP.ws === ws) {
+              if (!PVP.over) {
+                $("pvp-status").textContent = "CONNECTION LOST"
+                $("pvp-msg").textContent = "THE MATCH ENDED. GET BACK OUT THERE, PAL."
+              }
+              pvpCleanup()
+            }
+          }
+          ws.onerror = () => {
+            try {
+              ws.close()
+            } catch (e) {}
+          }
+        } catch (e) {
+          $("pvp-status").textContent = "CONNECTION FAILED"
+        }
+      }
+      function pvpMsg(d) {
+        if (!PVP || !d) return
+        if (d.t === "hello") {
+          PVP.side = d.side
+          if (d.opp && String(d.opp).indexOf("WAITING") === 0) {
+            $("pvp-status").textContent = "WAITING FOR OPPONENT..."
+            $("pvp-msg").textContent = "SHARE YOUR CODE AND WAIT FOR A FRIEND TO ACCEPT."
+          } else {
+            $("pvp-status").textContent = "OPPONENT FOUND!"
+            PVP.oppName = d.opp || PVP.oppName
+            $("pvp-opp-lbl").textContent = PVP.oppName
+          }
+          return
+        }
+        if (d.t === "waiting") {
+          $("pvp-status").textContent = "WAITING FOR OPPONENT..."
+          return
+        }
+        if (d.t === "peer") {
+          $("pvp-status").textContent = "OPPONENT JOINED! GET READY!"
+          $("pvp-msg").textContent = "MATCH STARTS SOON..."
+          return
+        }
+        if (d.t === "go") {
+          PVP.phase = "point"
+          PVP.ball = { x: 0.5, y: 0.5, arc: 0 }
+          $("pvp-msg").textContent = "GET READY!"
+          return
+        }
+        if (d.t === "serve") {
+          PVP.flight = d.flight
+          PVP.wait = null
+          PVP.hitLock = false
+          PVP.errT0 = 0
+          PVP.phase = "flight"
+          $("pvp-msg").textContent = d.serve === PVP.side ? "YOUR SERVE!" : PVP.oppName + " SERVING..."
+          return
+        }
+        if (d.t === "flight") {
+          PVP.flight = d.flight
+          PVP.wait = null
+          PVP.hitLock = false
+          PVP.errT0 = 0
+          PVP.phase = "flight"
+          $("pvp-msg").textContent = ""
+          return
+        }
+        if (d.t === "wait") {
+          PVP.flight = null
+          PVP.wait = d
+          PVP.ball = { x: d.x, y: d.y, arc: 0 }
+          PVP.phase = "wait"
+          return
+        }
+        if (d.t === "point") {
+          PVP.flight = null
+          PVP.wait = null
+          PVP.sc = d.sc || PVP.sc
+          $("pvp-you").textContent = PVP.sc[0]
+          $("pvp-opp").textContent = PVP.sc[1]
+          $("pvp-msg").textContent = d.reason + " - " + (d.winner === PVP.side ? "YOU SCORE!" : PVP.oppName + " SCORE!")
+          PVP.phase = "point"
+          return
+        }
+        if (d.t === "err") {
+          $("pvp-msg").textContent = d.msg
+          PVP.errTxt = d.msg
+          PVP.errT0 = Date.now()
+          return
+        }
+        if (d.t === "opp") {
+          PVP.opp.x = clamp(d.x == null ? PVP.opp.x : d.x, 0, 1)
+          PVP.opp.y = clamp(d.y == null ? PVP.opp.y : d.y, 0, 1)
+          return
+        }
+        if (d.t === "over") {
+          PVP.over = true
+          PVP.sc = d.sc || PVP.sc
+          pvpEnd(d.winner, d.reason)
+        }
+      }
+      function pvpEnd(winner, reason) {
+        if (!PVP) return
+        PVP.over = true
+        PVP.phase = "over"
+        const won = winner === PVP.side
+        const earned = won ? Math.round(25 * rankInfo().mult) : 10
+        if (won) SAVE.stats.wins++
+        else SAVE.stats.losses++
+        SAVE.coins += earned
+        save()
+        renderOwHud()
+        $("pvp-over-you").textContent = PVP.sc[0]
+        $("pvp-over-opp").textContent = PVP.sc[1]
+        $("pvp-over-opp-lbl").textContent = PVP.oppName
+        $("pvp-over-title").textContent = won ? "YOU WIN!" : "YOU LOSE"
+        $("pvp-over-title").style.color = won ? "#21d07a" : "#e84848"
+        $("pvp-over-msg").textContent =
+          (reason || "MATCH OVER") + (won ? " - GREAT DINKING, PAL!" : " - GET 'EM NEXT TIME!")
+        $("pvp-over-coins").textContent = "+" + earned + " COINS"
+        $("pvp-over").style.display = "flex"
+        $("pvp-msg").textContent = reason || ""
+      }
+      function pvpCleanup() {
+        if (!PVP) return
+        if (PVP.hb) clearInterval(PVP.hb)
+        if (PVP.raf) cancelAnimationFrame(PVP.raf)
+        try {
+          if (PVP.ws && PVP.ws.readyState <= 1) PVP.ws.close()
+        } catch (e) {}
+        PVP = null
+      }
+      function quitPvp() {
+        if (confirm("FORFEIT THIS 1V1 MATCH?")) {
+          toast("MATCH FORFEITED")
+          pvpCleanup()
+          backToWorld()
+        }
+      }
+      function closePvp() {
+        $("pvp-over").style.display = "none"
+        pvpCleanup()
+        backToWorld()
+      }
+      function pvpFrame(now) {
+        if (!PVP) return
+        PVP.raf = requestAnimationFrame(pvpFrame)
+        const dt = Math.min(0.04, PVP.lastT ? (now - PVP.lastT) / 1000 : 0.02)
+        PVP.lastT = now
+        pvpMove(dt)
+        pvpDraw(now)
+      }
+      function pvpMove(dt) {
+        if (!PVP || PVP.phase === "over" || !PVP.ws || PVP.ws.readyState !== 1) return
+        const you = PVP.you
+        const lo = PVP.side === 0 ? 0.52 : 0.03
+        const hi = PVP.side === 0 ? 0.97 : 0.48
+        let mx = 0
+        let my = 0
+        if (OW.keys["arrowdown"] || OW.keys["s"]) my = 1
+        if (OW.keys["arrowup"] || OW.keys["w"]) my = -1
+        if (OW.keys["arrowleft"] || OW.keys["a"]) mx = -1
+        if (OW.keys["arrowright"] || OW.keys["d"]) mx = 1
+        if (mx || my) {
+          const d = Math.hypot(mx, my)
+          const nx = clamp(you.x + (mx / d) * R_SPD * dt, 0.03, 0.97)
+          const ny = clamp(you.y + (my / d) * R_SPD * dt, lo, hi)
+          if (nx !== you.x || ny !== you.y) {
+            you.x = nx
+            you.y = ny
+            PVP.ws.send(JSON.stringify({ t: "pos", x: you.x, y: you.y }))
+          }
+        }
+      }
+      function pvpTryHit() {
+        if (!PVP || PVP.hitLock) return
+        if (!PVP.ws || PVP.ws.readyState !== 1) return
+        const d = Math.hypot(PVP.you.x - PVP.ball.x, PVP.you.y - PVP.ball.y)
+        if (d > R_HT + 0.05) {
+          PVP.errTxt = "STEP IN TO HIT"
+          PVP.errT0 = Date.now()
+          return
+        }
+        PVP.hitLock = true
+        PVP.ws.send(JSON.stringify({ t: "hit", tx: PVP.aim.x, ty: PVP.aim.y }))
+      }
+      function pvpDraw(now) {
+        const cv = $("pvp-canvas")
+        const ctx = cv.getContext("2d")
+        ctx.clearRect(0, 0, cv.width, cv.height)
+        const CR = drawCourt(ctx, cv.width, cv.height, null)
+        PVP.cr = CR
+        const m = (q) => [CR.x + q[0] * CR.w, CR.y + q[1] * CR.h]
+        if (PVP.flight) {
+          const f = PVP.flight
+          const t = clamp((Date.now() - f.t0) / 1000 / f.dur, 0, 1)
+          const e = easeOut(t)
+          PVP.ball = {
+            x: f.x0 + (f.tx - f.x0) * e,
+            y: f.y0 + (f.ty - f.y0) * e,
+            arc: Math.sin(Math.PI * t) * f.arc,
+          }
+        }
+        const you = PVP.you
+        const opp = PVP.opp
+        const ball = PVP.ball
+        const canHit = PVP.phase === "wait" && PVP.wait && PVP.wait.returner === PVP.side
+        if (canHit) {
+          const ap = m([you.x, you.y])
+          const at = m([PVP.aim.x, PVP.aim.y])
+          ctx.strokeStyle = "rgba(255,210,61,0.75)"
+          ctx.lineWidth = 2
+          ctx.setLineDash([5, 5])
+          ctx.beginPath()
+          ctx.moveTo(ap[0], ap[1])
+          ctx.lineTo(at[0], at[1])
+          ctx.stroke()
+          ctx.setLineDash([])
+          ctx.fillStyle = "#ffd23d"
+          ctx.fillRect(at[0] - 3, at[1] - 3, 6, 6)
+          const pulse = 0.4 + 0.6 * Math.abs(Math.sin(now / 200))
+          ctx.strokeStyle = "rgba(255,210,61," + pulse.toFixed(2) + ")"
+          ctx.lineWidth = 2
+          ctx.setLineDash([3, 4])
+          ctx.beginPath()
+          ctx.arc(ap[0], ap[1], R_HT * CR.w, 0, Math.PI * 2)
+          ctx.stroke()
+          ctx.setLineDash([])
+          ctx.fillStyle = "rgba(255,210,61,0.15)"
+          ctx.fillRect(ap[0] - R_HT * CR.w, ap[1] - R_HT * CR.w, R_HT * CR.w * 2, R_HT * CR.w * 2)
+        }
+        drawPlayer(ctx, ...m([you.x, you.y]), SAVE.custom, -1, SAVE.name, "you")
+        drawPlayer(ctx, ...m([opp.x, opp.y]), TEAM_PAL, 1, PVP.oppName, "cpu")
+        const bf = m([ball.x, ball.y])
+        ctx.fillStyle = "rgba(0,0,0,0.25)"
+        ctx.fillRect(bf[0] - 5, bf[1] - 2, 10, 4)
+        const bh = m([ball.x, ball.y - ball.arc])
+        drawBall(ctx, bh[0], bh[1], null)
+        if (PVP.phase === "wait" && PVP.wait) {
+          let full
+          if (PVP.errT0 && Date.now() - PVP.errT0 < 1500) full = PVP.errTxt || ""
+          else {
+            const dl = (PVP.wait.deadline - Date.now()) / 1000
+            const txt =
+              PVP.wait.returner === PVP.side ? "YOUR BALL! MOVE IN AND CLICK TO HIT" : PVP.oppName + " RETURNING..."
+            full = dl > 0 ? txt + " (" + dl.toFixed(1) + ")" : txt
+          }
+          if (full !== PVP.waitTxt) {
+            PVP.waitTxt = full
+            $("pvp-msg").textContent = full
+          }
+        }
+      }
+
+      $("pvp-canvas").addEventListener("pointermove", (e) => {
+        if (!PVP || !PVP.cr) return
+        const rect = $("pvp-canvas").getBoundingClientRect()
+        if (!rect.width) return
+        const sx = $("pvp-canvas").width / rect.width
+        const sy = $("pvp-canvas").height / rect.height
+        const nx = clamp((e.clientX - rect.left) * sx, PVP.cr.x, PVP.cr.x + PVP.cr.w)
+        const ny = clamp((e.clientY - rect.top) * sy, PVP.cr.y, PVP.cr.y + PVP.cr.h)
+        PVP.aim.x = clamp((nx - PVP.cr.x) / PVP.cr.w, 0, 1)
+        PVP.aim.y = clamp((ny - PVP.cr.y) / PVP.cr.h, 0, 1)
+      })
+      $("pvp-canvas").addEventListener("pointerdown", (e) => {
+        e.preventDefault()
+        if (!PVP || PVP.phase !== "wait" || !PVP.wait || PVP.wait.returner !== PVP.side) return
+        pvpTryHit()
+      })
+
       let autosaved = false
       function autosave() {
         if (autosaved) return
@@ -7386,6 +8391,10 @@
         refreshOnline()
         setInterval(refreshOnline, 30000)
         setInterval(refreshFriends, 8000)
+        refreshMail(true)
+        refreshChallenges()
+        setInterval(refreshMail, 60000)
+        setInterval(refreshChallenges, 30000)
       }
     </script>
   </body>

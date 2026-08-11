@@ -177,6 +177,41 @@ const ids = [
   "hp-r2",
   "vsub",
   "wrap",
+  "ow-social",
+  "badge-mail",
+  "badge-chal",
+  "s-inbox",
+  "mail-list",
+  "s-friends",
+  "fr-code",
+  "fr-add",
+  "fr-msg",
+  "fr-count",
+  "fr-list",
+  "fr-invites",
+  "s-pvp",
+  "pvp-canvas",
+  "pvp-status",
+  "pvp-you",
+  "pvp-opp",
+  "pvp-you-lbl",
+  "pvp-opp-lbl",
+  "pvp-msg",
+  "pvp-hint",
+  "pvp-over",
+  "pvp-over-title",
+  "pvp-over-you",
+  "pvp-over-opp",
+  "pvp-over-opp-lbl",
+  "pvp-over-msg",
+  "pvp-over-coins",
+  "letter-modal",
+  "letter-title",
+  "letter-body",
+  "bug-modal",
+  "bug-text",
+  "invite-modal",
+  "invite-body",
 ]
 for (const id of ids) elements[id] = makeEl(id)
 const store = {}
@@ -192,8 +227,10 @@ global.localStorage = {
   },
 }
 global.window = {}
+global.fetch = () => new Promise(() => {})
 global.performance = { now: () => Date.now() }
 global.requestAnimationFrame = () => 1
+global.cancelAnimationFrame = () => {}
 global.confirm = () => true
 global.structuredClone = (v) => JSON.parse(JSON.stringify(v))
 global.AudioContext = function () {}
@@ -459,6 +496,56 @@ try {
   show('s-settings');
   renderSettings();
   if (!$('st-rank').textContent) throw new Error('settings rank missing');
+
+  // ---- online: inbox / friends ----
+  openInbox();
+  if (!$('s-inbox').classList.contains('on')) throw new Error('openInbox did not show inbox');
+  openFriends();
+  if (!$('s-friends').classList.contains('on')) throw new Error('openFriends did not show friends');
+  if (!$('fr-code').textContent) throw new Error('friends screen missing code');
+  MAIL = { letters: [{ id: 0, type: 'welcome', title: 'WELCOME', body: 'HELLO' }], newCount: 0 };
+  openLetter(0);
+  if ($('letter-modal').style.display !== 'flex') throw new Error('openLetter did not show modal');
+  closeModal('letter-modal');
+  if ($('letter-modal').style.display !== 'none') throw new Error('closeModal did not hide modal');
+  openBugModal();
+  if ($('bug-modal').style.display !== 'flex') throw new Error('openBugModal did not show modal');
+  closeModal('bug-modal');
+  badgeMail(2);
+  if (!$('badge-mail').classList.contains('show')) throw new Error('badge-mail not shown');
+  badgeMail(0);
+  if ($('badge-mail').classList.contains('show')) throw new Error('badge-mail not hidden');
+  badgeChal(1);
+  if (!$('badge-chal').classList.contains('show')) throw new Error('badge-chal not shown');
+  badgeChal(0);
+  renderMail();
+  if (!$('mail-list').innerHTML.includes('WELCOME')) throw new Error('renderMail missing letter');
+
+  // ---- online: 1v1 match client ----
+  openPvp('test-id', 'GECKO');
+  if (!$('s-pvp').classList.contains('on')) throw new Error('openPvp did not show s-pvp');
+  if (PVP.oppName !== 'GECKO') throw new Error('pvp oppName not set');
+  pvpMsg({ t: 'hello', side: 0, opp: 'WAITING FOR OPPONENT...' });
+  if (PVP.side !== 0) throw new Error('hello side not set');
+  pvpMsg({ t: 'waiting' });
+  pvpMsg({ t: 'peer', name: 'GECKO' });
+  pvpMsg({ t: 'go', serve: 0 });
+  pvpMsg({ t: 'serve', serve: 0, flight: { t0: Date.now(), dur: 1, arc: 0.1, x0: 0.5, y0: 0.88, tx: 0.5, ty: 0.1, who: 0 } });
+  if (PVP.phase !== 'flight') throw new Error('serve did not set flight');
+  pvpMsg({ t: 'wait', x: 0.5, y: 0.1, returner: 1, deadline: Date.now() + 4000 });
+  if (PVP.phase !== 'wait' || PVP.wait.returner !== 1) throw new Error('wait not set');
+  pvpMsg({ t: 'opp', x: 0.3, y: 0.2 });
+  if (PVP.opp.x !== 0.3) throw new Error('opp pos not set');
+  pvpMsg({ t: 'point', winner: 0, reason: 'ACE', sc: [1, 0] });
+  if (PVP.sc[0] !== 1) throw new Error('point sc not updated');
+  const pvpCoins = SAVE.coins;
+  pvpMsg({ t: 'over', winner: 1, reason: 'VICTORY', sc: [1, 2] });
+  if (!PVP.over) throw new Error('over not set');
+  if (SAVE.coins !== pvpCoins + 10) throw new Error('pvp loss coins not awarded');
+  if ($('pvp-over').style.display !== 'flex') throw new Error('pvp-over not shown');
+  closePvp();
+  if (PVP) throw new Error('closePvp did not clear pvp state');
+  show('s-overworld');
 
   resetSave();
   console.log('ALL FLOWS OK');
