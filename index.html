@@ -392,6 +392,76 @@
       #ow-hud .coin-line {
         color: #b8860b;
       }
+      .btn.mini {
+        display: block;
+        width: 100%;
+        padding: 6px 8px;
+        font-size: 9px;
+        margin-top: 6px;
+      }
+      .pal-code {
+        font-size: 26px;
+        letter-spacing: 2px;
+        color: #3fd6a5;
+        text-shadow: 0 0 12px #3fd6a5;
+        padding: 10px 0;
+      }
+      .friend-row {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 8px 10px;
+        border: 2px solid #1d3a5f;
+        border-radius: 8px;
+        margin-bottom: 8px;
+        background: #0d2240;
+      }
+      .dot {
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+        flex: none;
+      }
+      .dot.on {
+        background: #3fd6a5;
+        box-shadow: 0 0 8px #3fd6a5;
+      }
+      .dot.off {
+        background: #4a5a76;
+      }
+      .friend-name {
+        font-weight: bold;
+        color: #cfe8ff;
+      }
+      .friend-code {
+        font-size: 12px;
+        color: #8aa6c8;
+        font-family: monospace;
+      }
+      .friend-x {
+        margin-left: auto;
+        background: none;
+        border: none;
+        color: #e84848;
+        cursor: pointer;
+        font-size: 16px;
+        font-family: inherit;
+      }
+      .pf-input {
+        flex: 1;
+        font-family: inherit;
+        font-size: 13px;
+        letter-spacing: 1px;
+        background: #0b1c34;
+        border: 3px solid #1d3a5f;
+        color: #3fd6a5;
+        padding: 10px;
+        text-transform: uppercase;
+        outline: none;
+      }
+      .pf-input:focus {
+        border-color: #3fd6a5;
+      }
       #ow-hint {
         position: absolute;
         bottom: 14px;
@@ -1190,6 +1260,7 @@
             <div class="chip">TROPHIES<br /><span class="v" id="tt-trophies">0</span></div>
             <div class="chip">MATCH WINS<br /><span class="v" id="tt-wins">0</span></div>
             <div class="chip">MATCH LOSSES<br /><span class="v" id="tt-losses">0</span></div>
+            <div class="chip">ONLINE<br /><span class="v" style="color: #3fd6a5" id="tt-online">&ndash;</span></div>
           </div>
         </div>
       </section>
@@ -1200,6 +1271,7 @@
             <span id="ow-season" onclick="event.stopPropagation(); openSeason()">--</span> SEASON<br />
             <span id="ow-coins" class="coin-line">0</span> COINS<br /><span id="ow-trophies">0</span>
             TROPHIES<br /><span id="ow-wins">0</span> WINS<br /><span id="ow-rank">ROOKIE</span> RANK
+            <button class="btn mini" onclick="openProfile()">PROFILE</button>
           </div>
           <canvas id="ow-canvas" width="1280" height="768"></canvas>
           <div id="ow-hint">
@@ -1221,6 +1293,28 @@
               </div>
             </div>
           </div>
+        </div>
+      </section>
+
+      <section id="s-profile" class="screen">
+        <div class="w-bar green">PROFILE<span class="dim">PICKLE PAL ONLINE</span></div>
+        <div class="w">
+          <div class="text-big" style="margin-bottom: 6px">YOUR PICKLE CODE</div>
+          <div class="pal-code" id="pf-code">CONNECTING...</div>
+          <button class="btn yellow" onclick="copyCode()">COPY CODE</button>
+          <div class="text-small text-dim" style="line-height: 2; margin: 8px 0 16px">
+            SHARE YOUR CODE SO FRIENDS CAN ADD YOU. CODES ARE UNIQUE FOREVER.
+          </div>
+          <div class="text-big" style="margin-bottom: 10px">ADD A FRIEND</div>
+          <div class="row" style="margin-bottom: 16px">
+            <input class="pf-input" id="pf-add" maxlength="14" placeholder="#XXX-Pal XXX" />
+            <button class="btn green" onclick="addFriend()">ADD</button>
+          </div>
+          <div class="fb" id="pf-msg" style="display: none"></div>
+          <div class="text-big" style="margin-bottom: 10px">FRIENDS <span class="dim" id="pf-count"></span></div>
+          <div id="pf-friends"></div>
+          <div style="height: 16px"></div>
+          <button class="btn dark" onclick="backToWorld()">BACK TO THE ACADEMY</button>
         </div>
       </section>
 
@@ -6989,6 +7083,225 @@
       }
       boot()
 
+      /* ================= ONLINE / PROFILE ================= */
+
+      const ONLINE_API =
+        typeof location !== "undefined" &&
+        (location.protocol === "file:" || location.hostname === "localhost" || location.hostname === "127.0.0.1")
+          ? "http://localhost:8787"
+          : "https://pickle-pal-online.<YOUR-ACCOUNT>.workers.dev"
+
+      let presTimer = null
+      function getUid() {
+        try {
+          let uid = localStorage.getItem("pp-uid")
+          if (!uid) {
+            uid = "P" + Math.random().toString(36).slice(2, 8).toUpperCase()
+            localStorage.setItem("pp-uid", uid)
+          }
+          return uid
+        } catch (e) {
+          return ""
+        }
+      }
+      const PAL_ADJ = ["DINK", "ACE", "VOLLEY", "SMASH", "TOP", "SPIN", "RALLY", "SLAM"]
+      const PAL_NOUN = ["BOSS", "PRO", "KING", "QUEEN", "GURU", "BANDIT", "TURBO", "ZIP"]
+      function palName() {
+        const n = SAVE.name || ""
+        if (n && n !== "YOU") return n.toUpperCase().slice(0, 12)
+        const uid = getUid()
+        let h = 0
+        for (let i = 0; i < uid.length; i++) h = (h * 31 + uid.charCodeAt(i)) | 0
+        return (PAL_ADJ[h % PAL_ADJ.length] + " " + PAL_NOUN[(h >> 3) % PAL_NOUN.length]).slice(0, 12)
+      }
+      function getCode() {
+        try {
+          return localStorage.getItem("pp-code") || ""
+        } catch (e) {
+          return ""
+        }
+      }
+      function setCode(code) {
+        try {
+          localStorage.setItem("pp-code", code)
+        } catch (e) {}
+      }
+      function startPresence() {
+        if (presTimer) return
+        try {
+          if (typeof fetch !== "function") return
+          const uid = getUid()
+          if (!uid) return
+          const ping = () => {
+            fetch(ONLINE_API + "/api/ping", {
+              method: "POST",
+              headers: { "content-type": "application/json" },
+              body: JSON.stringify({ uid: uid, name: palName() }),
+              keepalive: true,
+            })
+              .then((r) => r.json())
+              .then((d) => {
+                if (d && d.code) setCode(d.code)
+              })
+              .catch(() => {})
+          }
+          ping()
+          presTimer = setInterval(ping, 20000)
+          if (typeof navigator !== "undefined" && navigator.sendBeacon) {
+            window.addEventListener("pagehide", () => {
+              navigator.sendBeacon(
+                ONLINE_API + "/api/ping",
+                new Blob([JSON.stringify({ uid: uid, name: palName() })], { type: "application/json" }),
+              )
+            })
+          }
+        } catch (e) {}
+      }
+      function refreshOnline() {
+        try {
+          if (typeof fetch !== "function") return
+          fetch(ONLINE_API + "/api/live")
+            .then((r) => r.json())
+            .then((d) => {
+              if (d && typeof d.count === "number") $("tt-online").textContent = d.count
+            })
+            .catch(() => {})
+        } catch (e) {}
+      }
+
+      function fmtCode(code) {
+        return "#" + code.slice(0, 3) + "-Pal " + code.slice(3)
+      }
+      function normCode(raw) {
+        const c = String(raw || "")
+          .toUpperCase()
+          .replace(/[^0-9A-Z]/g, "")
+          .slice(0, 6)
+        return c.length === 6 ? c : ""
+      }
+      function loadFriends() {
+        try {
+          return JSON.parse(localStorage.getItem("pp-friends") || "[]") || []
+        } catch (e) {
+          return []
+        }
+      }
+      function saveFriends(list) {
+        try {
+          localStorage.setItem("pp-friends", JSON.stringify(list))
+        } catch (e) {}
+      }
+      let friendInfo = {}
+      let onlineMap = {}
+      function openProfile() {
+        show("s-profile")
+        renderProfile()
+        refreshFriends()
+      }
+      function renderProfile() {
+        const code = getCode()
+        $("pf-code").textContent = code ? fmtCode(code) : "CONNECTING..."
+        const list = loadFriends()
+        $("pf-count").textContent = list.length ? "(" + list.length + ")" : ""
+        const box = $("pf-friends")
+        if (!list.length) {
+          box.innerHTML = '<div class="text-small text-dim">NO FRIENDS YET. ADD SOME WITH THEIR PICKLE CODE.</div>'
+          return
+        }
+        box.innerHTML = list
+          .map((c) => {
+            const on = onlineMap[c]
+            const name = (friendInfo[c] && friendInfo[c].name) || c
+            return (
+              '<div class="friend-row"><span class="dot ' +
+              (on ? "on" : "off") +
+              '"></span><span class="friend-name">' +
+              name +
+              '</span><span class="friend-code">' +
+              fmtCode(c) +
+              '</span><button class="friend-x" onclick="removeFriend(\'' +
+              c +
+              "')\">X</button></div>"
+            )
+          })
+          .join("")
+      }
+      function copyCode() {
+        const code = getCode()
+        if (!code) return
+        const done = () => {
+          const msg = $("pf-msg")
+          msg.textContent = "COPIED: " + fmtCode(code)
+          msg.style.color = "#3fd6a5"
+          msg.style.display = "block"
+        }
+        if (typeof navigator !== "undefined" && navigator.clipboard) {
+          navigator.clipboard.writeText(fmtCode(code)).then(done, done)
+        } else done()
+      }
+      function addFriend() {
+        const code = normCode($("pf-add").value)
+        const msg = $("pf-msg")
+        if (!code) {
+          msg.textContent = "ENTER A VALID CODE LIKE #ABC-Pal 123"
+          msg.style.color = "#e84848"
+          msg.style.display = "block"
+          return
+        }
+        if (code === getCode()) {
+          msg.textContent = "THAT'S YOUR OWN CODE!"
+          msg.style.color = "#ffd23d"
+          msg.style.display = "block"
+          return
+        }
+        const list = loadFriends()
+        if (list.includes(code)) {
+          msg.textContent = "ALREADY ADDED"
+          msg.style.color = "#ffd23d"
+          msg.style.display = "block"
+          return
+        }
+        fetch(ONLINE_API + "/api/status?codes=" + code)
+          .then((r) => r.json())
+          .then((d) => {
+            const p = d.players && d.players[0]
+            if (!p || !p.uid) throw new Error("no such code")
+            list.push(code)
+            saveFriends(list)
+            friendInfo[code] = { name: p.name || code }
+            $("pf-add").value = ""
+            msg.style.display = "none"
+            renderProfile()
+          })
+          .catch(() => {
+            msg.textContent = "CODE NOT FOUND"
+            msg.style.color = "#e84848"
+            msg.style.display = "block"
+          })
+      }
+      function removeFriend(code) {
+        saveFriends(loadFriends().filter((c) => c !== code))
+        renderProfile()
+      }
+      function refreshFriends() {
+        try {
+          if (typeof fetch !== "function") return
+          if (!$("s-profile").classList.contains("on")) return
+          const list = loadFriends()
+          if (!list.length) return
+          fetch(ONLINE_API + "/api/status?codes=" + list.join(","))
+            .then((r) => r.json())
+            .then((d) => {
+              for (const p of d.players || []) {
+                onlineMap[p.code] = !!p.online
+                if (p.name) friendInfo[p.code] = { name: p.name }
+              }
+              renderProfile()
+            })
+            .catch(() => {})
+        } catch (e) {}
+      }
+
       let autosaved = false
       function autosave() {
         if (autosaved) return
@@ -7003,6 +7316,10 @@
         })
         document.addEventListener("pointerdown", autosave)
         document.addEventListener("keydown", autosave)
+        startPresence()
+        refreshOnline()
+        setInterval(refreshOnline, 30000)
+        setInterval(refreshFriends, 8000)
       }
     </script>
   </body>
