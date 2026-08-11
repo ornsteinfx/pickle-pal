@@ -212,6 +212,11 @@ const ids = [
   "bug-text",
   "invite-modal",
   "invite-body",
+  "s-lobby",
+  "lobby-canvas",
+  "lobby-status",
+  "lobby-hint",
+  "lobby-pals",
 ]
 for (const id of ids) elements[id] = makeEl(id)
 const store = {}
@@ -549,6 +554,26 @@ try {
   if ($('pvp-over').style.display !== 'flex') throw new Error('pvp-over not shown');
   closePvp();
   if (PVP) throw new Error('closePvp did not clear pvp state');
+  show('s-overworld');
+
+  // ---- online: academy lobby ----
+  openLobby('lobby-test-id', 'GECKO');
+  if (!$('s-lobby').classList.contains('on')) throw new Error('openLobby did not show s-lobby');
+  if (LOBBY.oppName !== 'GECKO') throw new Error('lobby oppName not set');
+  lobbyMsg({ t: 'hello', you: { x: 0.5, y: 0.5 }, peers: [{ uid: 'u1', name: 'GECKO', x: 0.3, y: 0.4 }] });
+  if (LOBBY.peers.length !== 1) throw new Error('lobby hello peers not set');
+  if ($('lobby-status').textContent.indexOf('GECKO') < 0) throw new Error('lobby status missing peer');
+  lobbyMsg({ t: 'peer', uid: 'u2', name: 'NEWPAL', x: 0.2, y: 0.8 });
+  if (LOBBY.peers.length !== 2) throw new Error('lobby peer not added');
+  lobbyMsg({ t: 'pos', uid: 'u2', x: 0.7, y: 0.6 });
+  const p2 = LOBBY.peers.find((p) => p.uid === 'u2');
+  if (p2.x !== 0.7) throw new Error('lobby pos not applied');
+  lobbyMsg({ t: 'left', uid: 'u1', name: 'GECKO' });
+  if (LOBBY.peers.length !== 1) throw new Error('lobby left not removed');
+  lobbyMove(0.016);
+  if (LOBBY.you.x !== 0.5) throw new Error('lobbyMove moved without keys');
+  closeLobby();
+  if (LOBBY) throw new Error('closeLobby did not clear lobby state');
   show('s-overworld');
 
   resetSave();

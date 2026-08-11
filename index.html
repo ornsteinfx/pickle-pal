@@ -1738,6 +1738,20 @@
         </div>
       </section>
 
+      <section id="s-lobby" class="screen">
+        <div class="w-bar" style="background: #1d7a5f">ACADEMY LOBBY<span class="dim" id="lobby-status"></span></div>
+        <div class="match-stage" style="position: relative">
+          <canvas id="lobby-canvas"></canvas>
+          <div class="quiz-panel" style="bottom: 52px">
+            <div id="lobby-hint" class="q-note">WALK AROUND WITH YOUR PAL!</div>
+          </div>
+          <div class="match-actions">
+            <div class="text-small text-dim" id="lobby-pals" style="text-align: right">MOVE WITH WASD / ARROWS</div>
+            <button class="btn dark" onclick="quitLobby()">LEAVE</button>
+          </div>
+        </div>
+      </section>
+
       <section id="s-result" class="screen">
         <div class="w-bar">FINAL SCORE</div>
         <div class="w">
@@ -3136,7 +3150,7 @@
         toast("SAVE DATA ERASED")
       }
       function fitMatch() {
-        for (const id of ["game-canvas", "rally-canvas", "pvp-canvas"]) {
+        for (const id of ["game-canvas", "rally-canvas", "pvp-canvas", "lobby-canvas"]) {
           const c = $(id)
           if (!c || typeof c.getBoundingClientRect !== "function") continue
           const r = c.getBoundingClientRect()
@@ -3149,7 +3163,7 @@
       function show(id) {
         document.querySelectorAll(".screen").forEach((s) => s.classList.remove("on"))
         $(id).classList.add("on")
-        if (id === "s-game" || id === "s-rally" || id === "s-pvp") {
+        if (id === "s-game" || id === "s-rally" || id === "s-pvp" || id === "s-lobby") {
           requestAnimationFrame(fitMatch)
         }
         SFX.click()
@@ -7734,6 +7748,7 @@
       let CHALS = []
       let INVITE = null
       const invitePopped = new Set()
+      const joinedChals = new Set()
 
       function badgeMail(n) {
         const b = $("badge-mail")
@@ -7941,6 +7956,18 @@
                   pop.fromName + " (" + fmtCode(pop.fromCode) + ") HAS CHALLENGED YOU TO A LIVE 1V1 RALLY!"
                 $("invite-modal").style.display = "flex"
               }
+              const acc = CHALS.find(
+                (c) => c.from === uid && c.status === "accepted" && c.matchId && !joinedChals.has(c.id),
+              )
+              if (acc) {
+                const live =
+                  acc.type === "duel" ? PVP && PVP.matchId === acc.matchId : LOBBY && LOBBY.matchId === acc.matchId
+                if (!live) {
+                  joinedChals.add(acc.id)
+                  if (acc.type === "duel") openPvp(acc.matchId, acc.toName || "OPPONENT")
+                  else openLobby(acc.matchId, acc.toName || "PAL")
+                }
+              }
             })
             .catch(() => {})
         } catch (e) {}
@@ -7989,11 +8016,17 @@
           })
             .then((r) => r.json())
             .then((d) => {
-              if (d && d.ok && accept && invite.type === "duel" && d.matchId) {
-                toast("CHALLENGE ACCEPTED! GET READY!")
-                openPvp(d.matchId, invite.fromName)
+              if (d && d.ok && accept && d.matchId) {
+                joinedChals.add(invite.id)
+                if (invite.type === "duel") {
+                  toast("CHALLENGE ACCEPTED! GET READY!")
+                  openPvp(d.matchId, invite.fromName)
+                } else {
+                  toast("YOU'RE IN THE LOBBY!")
+                  openLobby(d.matchId, invite.fromName)
+                }
               } else if (d && d.ok) {
-                toast(accept ? (invite.type === "lobby" ? "YOU'RE IN THE LOBBY!" : "CHALLENGE ACCEPTED!") : "DECLINED")
+                toast(accept ? "CHALLENGE ACCEPTED!" : "DECLINED")
               }
               refreshChallenges()
             })
@@ -8023,12 +8056,29 @@
               return fetch(ONLINE_API + "/api/challenge", {
                 method: "POST",
                 headers: { "content-type": "application/json" },
-                body: JSON.stringify({ from: getUid(), fromName: palName(), fromCode: getCode(), to: p.uid, type }),
+                body: JSON.stringify({
+                  from: getUid(),
+                  fromName: palName(),
+                  fromCode: getCode(),
+                  to: p.uid,
+                  toName: p.name,
+                  type,
+                }),
               })
                 .then((r) => r.json())
                 .then((d2) => {
-                  if (d2 && d2.ok) toast(type === "duel" ? "1V1 CHALLENGE SENT!" : "LOBBY INVITE SENT!")
-                  else toast("COULDN'T SEND CHALLENGE")
+                  if (d2 && d2.ok && d2.matchId) {
+                    joinedChals.add(d2.id)
+                    if (type === "duel") {
+                      toast("CHALLENGE SENT! JOINING MATCH...")
+                      openPvp(d2.matchId, p.name)
+                    } else {
+                      toast("LOBBY INVITE SENT! JOINING LOBBY...")
+                      openLobby(d2.matchId, p.name)
+                    }
+                  } else if (d2 && d2.ok) {
+                    toast(type === "duel" ? "1V1 CHALLENGE SENT!" : "LOBBY INVITE SENT!")
+                  } else toast("COULDN'T SEND CHALLENGE")
                 })
             })
             .catch(() => toast("NETWORK ERROR"))
@@ -8374,6 +8424,178 @@
         if (!PVP || PVP.phase !== "wait" || !PVP.wait || PVP.wait.returner !== PVP.side) return
         pvpTryHit()
       })
+
+      /* ================= ACADEMY LOBBY ================= */
+
+      let LOBBY = null
+
+      function openLobby(matchId, oppName) {
+        LOBBY = {
+          ws: null,
+          matchId,
+          you: { x: 0.5, y: 0.82 },
+          peers: [],
+          oppName: oppName || "PAL",
+          raf: 0,
+          hb: null,
+          lastT: 0,
+        }
+        $("lobby-status").textContent = "CONNECTING..."
+        $("lobby-hint").textContent = "WALK AROUND WITH YOUR PAL!"
+        $("lobby-pals").textContent = "MOVE WITH WASD / ARROWS"
+        show("s-lobby")
+        LOBBY.raf = requestAnimationFrame(lobbyFrame)
+        connectLobby()
+      }
+      function connectLobby() {
+        if (!LOBBY) return
+        try {
+          if (typeof WebSocket === "undefined") {
+            $("lobby-status").textContent = "NO WEBSOCKETS"
+            return
+          }
+          const ws = new WebSocket(wssBase() + "/api/lobby/" + LOBBY.matchId)
+          LOBBY.ws = ws
+          ws.onopen = () => {
+            try {
+              ws.send(JSON.stringify({ t: "join", uid: getUid(), name: palName() }))
+            } catch (e) {}
+            LOBBY.hb = setInterval(() => {
+              try {
+                if (ws.readyState === 1) ws.send(JSON.stringify({ t: "hb", x: LOBBY.you.x, y: LOBBY.you.y }))
+              } catch (e) {}
+            }, 400)
+          }
+          ws.onmessage = (ev) => {
+            let d
+            try {
+              d = JSON.parse(String(ev.data))
+            } catch (e) {
+              return
+            }
+            lobbyMsg(d)
+          }
+          ws.onclose = () => {
+            if (LOBBY && LOBBY.ws === ws) {
+              $("lobby-status").textContent = "LEFT THE LOBBY"
+              lobbyCleanup()
+            }
+          }
+          ws.onerror = () => {
+            try {
+              ws.close()
+            } catch (e) {}
+          }
+        } catch (e) {
+          $("lobby-status").textContent = "CONNECTION FAILED"
+        }
+      }
+      function lobbyMsg(d) {
+        if (!LOBBY || !d) return
+        if (d.t === "hello") {
+          LOBBY.peers = (d.peers || []).map((p) => ({ uid: p.uid, name: p.name, x: p.x, y: p.y }))
+          if (LOBBY.peers.length) LOBBY.oppName = LOBBY.peers[0].name
+          lobbyStatus()
+          return
+        }
+        if (d.t === "peer") {
+          if (!LOBBY.peers.some((p) => p.uid === d.uid)) {
+            LOBBY.peers.push({ uid: d.uid, name: d.name, x: d.x || 0.5, y: d.y || 0.5 })
+            LOBBY.oppName = d.name
+          }
+          lobbyStatus()
+          return
+        }
+        if (d.t === "pos") {
+          const p = LOBBY.peers.find((q) => q.uid === d.uid)
+          if (p) {
+            p.x = clamp(d.x == null ? p.x : d.x, 0, 1)
+            p.y = clamp(d.y == null ? p.y : d.y, 0, 1)
+          }
+          return
+        }
+        if (d.t === "left") {
+          LOBBY.peers = LOBBY.peers.filter((p) => p.uid !== d.uid)
+          lobbyStatus()
+        }
+      }
+      function lobbyStatus() {
+        if (!LOBBY) return
+        const names = LOBBY.peers.map((p) => p.name)
+        $("lobby-status").textContent = LOBBY.peers.length ? "WITH " + names.join(", ") : "WAITING FOR YOUR PAL..."
+      }
+      function lobbyCleanup() {
+        if (!LOBBY) return
+        if (LOBBY.hb) clearInterval(LOBBY.hb)
+        if (LOBBY.raf) cancelAnimationFrame(LOBBY.raf)
+        try {
+          if (LOBBY.ws && LOBBY.ws.readyState <= 1) LOBBY.ws.close()
+        } catch (e) {}
+        LOBBY = null
+      }
+      function closeLobby() {
+        lobbyCleanup()
+        backToWorld()
+      }
+      function quitLobby() {
+        if (confirm("LEAVE THE LOBBY?")) {
+          toast("LEFT THE LOBBY")
+          lobbyCleanup()
+          backToWorld()
+        }
+      }
+      function lobbyFrame(now) {
+        if (!LOBBY) return
+        LOBBY.raf = requestAnimationFrame(lobbyFrame)
+        const dt = Math.min(0.04, LOBBY.lastT ? (now - LOBBY.lastT) / 1000 : 0.02)
+        LOBBY.lastT = now
+        lobbyMove(dt)
+        lobbyDraw(now)
+      }
+      function lobbyMove(dt) {
+        if (!LOBBY || !LOBBY.ws || LOBBY.ws.readyState !== 1) return
+        const you = LOBBY.you
+        let mx = 0
+        let my = 0
+        if (OW.keys["arrowdown"] || OW.keys["s"]) my = 1
+        if (OW.keys["arrowup"] || OW.keys["w"]) my = -1
+        if (OW.keys["arrowleft"] || OW.keys["a"]) mx = -1
+        if (OW.keys["arrowright"] || OW.keys["d"]) mx = 1
+        if (mx || my) {
+          const d = Math.hypot(mx, my)
+          const nx = clamp(you.x + (mx / d) * R_SPD * dt, 0.03, 0.97)
+          const ny = clamp(you.y + (my / d) * R_SPD * dt, 0.03, 0.97)
+          if (nx !== you.x || ny !== you.y) {
+            you.x = nx
+            you.y = ny
+            LOBBY.ws.send(JSON.stringify({ t: "pos", x: you.x, y: you.y }))
+          }
+        }
+      }
+      function lobbyDraw(now) {
+        if (!LOBBY) return
+        const cv = $("lobby-canvas")
+        const ctx = cv.getContext("2d")
+        ctx.clearRect(0, 0, cv.width, cv.height)
+        const CR = drawCourt(ctx, cv.width, cv.height, null)
+        const m = (q) => [CR.x + q[0] * CR.w, CR.y + q[1] * CR.h]
+        for (const p of LOBBY.peers) {
+          const pt = m([p.x, p.y])
+          drawPlayer(ctx, pt[0], pt[1], TEAM_PAL, 1, p.name, "cpu")
+        }
+        const u = m([LOBBY.you.x, LOBBY.you.y])
+        drawPlayer(ctx, u[0], u[1], SAVE.custom, -1, SAVE.name || "YOU", "you")
+        if (LOBBY.peers.length) {
+          const pulse = 0.35 + 0.25 * Math.abs(Math.sin(now / 700))
+          ctx.strokeStyle = "rgba(255,210,61," + pulse.toFixed(2) + ")"
+          ctx.lineWidth = 2
+          ctx.setLineDash([4, 6])
+          ctx.beginPath()
+          ctx.arc(u[0], u[1], R_HT * CR.w, 0, Math.PI * 2)
+          ctx.stroke()
+          ctx.setLineDash([])
+        }
+      }
 
       let autosaved = false
       function autosave() {
