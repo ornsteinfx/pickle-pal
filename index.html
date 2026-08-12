@@ -7646,7 +7646,8 @@
         const uid = getUid()
         let h = 0
         for (let i = 0; i < uid.length; i++) h = (h * 31 + uid.charCodeAt(i)) | 0
-        return (PAL_ADJ[h % PAL_ADJ.length] + " " + PAL_NOUN[(h >> 3) % PAL_NOUN.length]).slice(0, 12)
+        const mod = (v, m) => ((v % m) + m) % m
+        return (PAL_ADJ[mod(h, PAL_ADJ.length)] + " " + PAL_NOUN[mod(h >> 3, PAL_NOUN.length)]).slice(0, 12)
       }
       function getCode() {
         try {
@@ -8697,13 +8698,14 @@
       const PEER_HAIR = ["#3a3328", "#ffd23d", "#8b5a2b", "#2b2b33", "#e8e8e8", "#e84848"]
       const PEER_SHIRT = ["#2f7fe0", "#21d07a", "#a85fd6", "#ff7a2e", "#e84848", "#3fc7d6", "#9bd14b"]
       const PEER_PANTS = ["#2a3a52", "#04301a", "#4a2a63", "#2b2b33", "#5a3a1f"]
+      const mod = (v, m) => ((v % m) + m) % m
       function peerCfg(uid) {
         let h = 0
         for (let i = 0; i < uid.length; i++) h = (h * 31 + uid.charCodeAt(i)) | 0
         return {
-          hair: PEER_HAIR[h % PEER_HAIR.length],
-          shirt: PEER_SHIRT[(h >> 3) % PEER_SHIRT.length],
-          pants: PEER_PANTS[(h >> 5) % PEER_PANTS.length],
+          hair: PEER_HAIR[mod(h, PEER_HAIR.length)],
+          shirt: PEER_SHIRT[mod(h >> 3, PEER_SHIRT.length)],
+          pants: PEER_PANTS[mod(h >> 5, PEER_PANTS.length)],
           shoes: "#2b2b33",
           paddle: "#ffd23d",
         }
