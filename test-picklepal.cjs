@@ -126,6 +126,13 @@ const ids = [
   "hero-canvas",
   "court-preview",
   "name-input",
+  "name-coins",
+  "name-hint",
+  "rename-btn",
+  "name-modal",
+  "nm-title",
+  "nm-body",
+  "nm-input",
   "cat-btns",
   "swatch-grid",
   "shop-coins",
@@ -570,8 +577,9 @@ try {
   if (p2.x !== 0.7) throw new Error('lobby pos not applied');
   lobbyMsg({ t: 'left', uid: 'u1', name: 'GECKO' });
   if (LOBBY.peers.length !== 1) throw new Error('lobby left not removed');
+  const sx = LOBBY.you.x, sy = LOBBY.you.y;
   lobbyMove(0.016);
-  if (LOBBY.you.x !== 0.5) throw new Error('lobbyMove moved without keys');
+  if (LOBBY.you.x !== sx || LOBBY.you.y !== sy) throw new Error('lobbyMove moved without keys');
   closeLobby();
   if (LOBBY) throw new Error('closeLobby did not clear lobby state');
   show('s-overworld');

@@ -359,7 +359,8 @@
       }
 
       /* ---------- OVERWORLD ---------- */
-      #s-overworld {
+      #s-overworld,
+      #s-lobby {
         position: relative;
         padding: 0;
         overflow: hidden;
@@ -369,12 +370,49 @@
         position: relative;
         margin: auto;
       }
-      #ow-canvas {
+      #ow-canvas,
+      #lobby-canvas {
         display: block;
         width: 100%;
         height: 100%;
         image-rendering: pixelated;
         background: #2f8f3a;
+      }
+      #lobby-hud {
+        position: absolute;
+        top: 12px;
+        right: 12px;
+        z-index: 20;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        align-items: stretch;
+      }
+      #lobby-status {
+        background: var(--panel);
+        border: 3px solid var(--ink-dark);
+        box-shadow: 3px 3px 0 rgba(0, 0, 0, 0.5);
+        padding: 8px 12px;
+        font-size: 9px;
+        color: #3fd6a5;
+        text-align: center;
+      }
+      #lobby-hint {
+        position: absolute;
+        left: 50%;
+        bottom: 16px;
+        transform: translateX(-50%);
+        z-index: 20;
+        margin-bottom: 0;
+        background: rgba(6, 12, 8, 0.55);
+        padding: 8px 12px;
+      }
+      #lobby-pals {
+        position: absolute;
+        left: 14px;
+        bottom: 14px;
+        z-index: 20;
+        margin-bottom: 0;
       }
       #ow-hud {
         position: absolute;
@@ -1596,7 +1634,11 @@
           <div class="row" style="margin-bottom: 12px">
             <input id="name-input" maxlength="10" placeholder="YOUR NAME" />
             <button class="btn" onclick="randomCustom()">RANDOM</button>
+            <button class="btn" onclick="openNameModal()" id="rename-btn">RENAME</button>
             <button class="btn yellow" onclick="openShop()">PADDLE SHOP</button>
+          </div>
+          <div class="text-small text-dim" id="name-hint" style="margin-bottom: 12px">
+            COINS: <span id="name-coins">0</span> &mdash; FIRST NAME IS FREE, RENAMES COST 100.
           </div>
           <div class="row wrap" id="cat-btns" style="margin-bottom: 12px"></div>
           <div class="swatch-grid" id="swatch-grid"></div>
@@ -1739,16 +1781,14 @@
       </section>
 
       <section id="s-lobby" class="screen">
-        <div class="w-bar" style="background: #1d7a5f">ACADEMY LOBBY<span class="dim" id="lobby-status"></span></div>
-        <div class="match-stage" style="position: relative">
-          <canvas id="lobby-canvas"></canvas>
-          <div class="quiz-panel" style="bottom: 52px">
-            <div id="lobby-hint" class="q-note">WALK AROUND WITH YOUR PAL!</div>
-          </div>
-          <div class="match-actions">
-            <div class="text-small text-dim" id="lobby-pals" style="text-align: right">MOVE WITH WASD / ARROWS</div>
+        <div class="ow-stage" id="lobby-stage">
+          <div id="lobby-hud">
+            <div id="lobby-status">WAITING FOR YOUR PAL...</div>
             <button class="btn dark" onclick="quitLobby()">LEAVE</button>
           </div>
+          <canvas id="lobby-canvas" width="1280" height="768"></canvas>
+          <div id="lobby-hint" class="q-note">WALK AROUND WITH YOUR PAL!</div>
+          <div id="lobby-pals" class="text-small text-dim">MOVE WITH WASD / ARROWS</div>
         </div>
       </section>
 
@@ -1824,6 +1864,18 @@
       </div>
     </div>
 
+    <div id="name-modal" class="modal">
+      <div class="dm-box">
+        <div class="dm-title" id="nm-title">CREATE YOUR NAME</div>
+        <div class="dm-body" id="nm-body"></div>
+        <input class="pf-input" id="nm-input" maxlength="10" placeholder="YOUR NAME" />
+        <div class="row" style="margin-top: 14px">
+          <button class="btn green grow" onclick="saveNameModal()">SAVE</button>
+          <button class="btn red grow" onclick="closeModal('name-modal')">CANCEL</button>
+        </div>
+      </div>
+    </div>
+
     <script>
       const $ = (id) => document.getElementById(id)
       const clamp = (v, a, b) => Math.max(a, Math.min(b, v))
@@ -1855,6 +1907,7 @@
           padfx: "",
         },
         name: "YOU",
+        named: false,
         mastery: {},
         stats: { wins: 0, losses: 0, points: 0, trophies: 0, longestRally: 0 },
         coins: 0,
@@ -3150,7 +3203,7 @@
         toast("SAVE DATA ERASED")
       }
       function fitMatch() {
-        for (const id of ["game-canvas", "rally-canvas", "pvp-canvas", "lobby-canvas"]) {
+        for (const id of ["game-canvas", "rally-canvas", "pvp-canvas"]) {
           const c = $(id)
           if (!c || typeof c.getBoundingClientRect !== "function") continue
           const r = c.getBoundingClientRect()
@@ -3163,9 +3216,10 @@
       function show(id) {
         document.querySelectorAll(".screen").forEach((s) => s.classList.remove("on"))
         $(id).classList.add("on")
-        if (id === "s-game" || id === "s-rally" || id === "s-pvp" || id === "s-lobby") {
+        if (id === "s-game" || id === "s-rally" || id === "s-pvp") {
           requestAnimationFrame(fitMatch)
         }
+        if (id === "s-lobby") fitStage("lobby-stage", "s-lobby")
         SFX.click()
         if (id === "s-title") renderTitleStats()
         if (id === "s-settings") {
@@ -4580,7 +4634,7 @@
         if (rk) rk.textContent = rankInfo().name
       }
 
-      function drawOverworld(ctx, now) {
+      function drawOverworld(ctx, now, skipHero) {
         ctx.imageSmoothingEnabled = false
         ctx.drawImage(OW.static, 0, 0)
         const T = OW.t
@@ -4630,8 +4684,10 @@
           drawOwChar(ctx, r.pos[0] * T + T / 2, r.pos[1] * T + T / 2 + 6, r.dir, r.cfg, r.phase)
         }
         const h = OW.hero
-        drawOwChar(ctx, h.px, h.py, h.dir, SAVE.custom, h.phase)
-        seasonAcc(ctx, h.px, h.py, SEASON)
+        if (!skipHero) {
+          drawOwChar(ctx, h.px, h.py, h.dir, SAVE.custom, h.phase)
+          seasonAcc(ctx, h.px, h.py, SEASON)
+        }
         ambDraw(AMB_A, ctx, now)
         ambDraw(AMB_B, ctx, now)
       }
@@ -4859,9 +4915,9 @@
         $("ow-dlog-text").textContent = ""
       }
 
-      function fitStage() {
-        const st = $("ow-stage")
-        const sec = $("s-overworld")
+      function fitStage(stageId, sectionId) {
+        const st = $(stageId || "ow-stage")
+        const sec = $(sectionId || "s-overworld")
         if (!st || !sec) return
         const vw = sec.clientWidth
         const vh = sec.clientHeight
@@ -5960,11 +6016,76 @@
       const CATS = ["hair", "shirt", "shorts", "socks", "shoes", "paddle"]
       let customCat = "hair"
 
+      const RENAME_COST = 100
+
       function renderCustom() {
         buildCatButtons()
         buildSwatches()
         drawCustomPreviews()
         $("name-input").value = SAVE.name
+        const nc = $("name-coins")
+        if (nc) nc.textContent = SAVE.coins
+        if (SAVE.name && SAVE.name !== "YOU") SAVE.named = true
+        if (!SAVE.named) openNameModal()
+      }
+      function openNameModal() {
+        const renaming = !!SAVE.named
+        $("nm-title").textContent = renaming ? "RENAME (" + RENAME_COST + " COINS)" : "CREATE YOUR NAME"
+        $("nm-body").textContent = renaming
+          ? "RENAMING COSTS " + RENAME_COST + " COINS. YOU HAVE " + SAVE.coins + "."
+          : "CHOOSE A NAME YOUR FRIENDS WILL SEE ONLINE. THE FIRST NAME IS FREE!"
+        $("nm-input").value = SAVE.name === "YOU" ? "" : SAVE.name
+        $("name-modal").style.display = "flex"
+        try {
+          $("nm-input").focus()
+        } catch (e) {}
+      }
+      function saveNameModal() {
+        const val = String($("nm-input").value || "")
+          .toUpperCase()
+          .slice(0, 10)
+          .trim()
+        if (!val) {
+          toast("ENTER A NAME")
+          return
+        }
+        if (SAVE.named && SAVE.coins < RENAME_COST) {
+          toast("NEED " + RENAME_COST + " COINS TO RENAME")
+          return
+        }
+        if (SAVE.named) SAVE.coins -= RENAME_COST
+        SAVE.name = val
+        SAVE.named = true
+        save()
+        $("name-modal").style.display = "none"
+        const ni = $("name-input")
+        if (ni) ni.value = SAVE.name
+        const nc = $("name-coins")
+        if (nc) nc.textContent = SAVE.coins
+        toast("NAME SAVED")
+        pingPresence()
+        refreshChallenges()
+      }
+      function applyName(raw) {
+        const val = String(raw || "")
+          .toUpperCase()
+          .slice(0, 10)
+          .trim()
+        if (!val) return
+        if (SAVE.named && SAVE.coins < RENAME_COST) {
+          $("name-input").value = SAVE.name
+          toast("NEED " + RENAME_COST + " COINS TO RENAME")
+          return
+        }
+        if (SAVE.named) SAVE.coins -= RENAME_COST
+        SAVE.name = val
+        SAVE.named = true
+        save()
+        const nc = $("name-coins")
+        if (nc) nc.textContent = SAVE.coins
+        toast("NAME SAVED")
+        pingPresence()
+        refreshChallenges()
       }
       function buildCatButtons() {
         const box = $("cat-btns")
@@ -6048,8 +6169,7 @@
       }
       document.addEventListener("change", (e) => {
         if (e.target.id === "name-input") {
-          SAVE.name = (e.target.value || "YOU").toUpperCase().slice(0, 10) || "YOU"
-          save()
+          applyName(e.target.value)
         }
       })
 
@@ -7546,21 +7666,8 @@
           if (typeof fetch !== "function") return
           const uid = getUid()
           if (!uid) return
-          const ping = () => {
-            fetch(ONLINE_API + "/api/ping", {
-              method: "POST",
-              headers: { "content-type": "application/json" },
-              body: JSON.stringify({ uid: uid, name: palName() }),
-              keepalive: true,
-            })
-              .then((r) => r.json())
-              .then((d) => {
-                if (d && d.code) setCode(d.code)
-              })
-              .catch(() => {})
-          }
-          ping()
-          presTimer = setInterval(ping, 20000)
+          pingPresence()
+          presTimer = setInterval(pingPresence, 20000)
           if (typeof navigator !== "undefined" && navigator.sendBeacon) {
             window.addEventListener("pagehide", () => {
               navigator.sendBeacon(
@@ -7569,6 +7676,24 @@
               )
             })
           }
+        } catch (e) {}
+      }
+      function pingPresence() {
+        try {
+          if (typeof fetch !== "function") return
+          const uid = getUid()
+          if (!uid) return
+          fetch(ONLINE_API + "/api/ping", {
+            method: "POST",
+            headers: { "content-type": "application/json" },
+            body: JSON.stringify({ uid: uid, name: palName() }),
+            keepalive: true,
+          })
+            .then((r) => r.json())
+            .then((d) => {
+              if (d && d.code) setCode(d.code)
+            })
+            .catch(() => {})
         } catch (e) {}
       }
       function refreshOnline() {
@@ -8087,6 +8212,7 @@
                   } else if (d2 && d2.ok) {
                     toast(type === "duel" ? "1V1 CHALLENGE SENT!" : "LOBBY INVITE SENT!")
                   } else toast("COULDN'T SEND CHALLENGE")
+                  refreshChallenges()
                 })
             })
             .catch(() => toast("NETWORK ERROR"))
@@ -8438,12 +8564,18 @@
       let LOBBY = null
 
       function openLobby(matchId, oppName) {
+        if (!OW.static) {
+          buildTerrain()
+          buildStatic()
+        }
         LOBBY = {
           ws: null,
           matchId,
-          you: { x: 0.5, y: 0.82 },
+          you: { x: 21 / OW.w, y: 21 / OW.h },
           peers: [],
           oppName: oppName || "PAL",
+          dir: 3,
+          moving: false,
           raf: 0,
           hb: null,
           lastT: 0,
@@ -8501,14 +8633,14 @@
       function lobbyMsg(d) {
         if (!LOBBY || !d) return
         if (d.t === "hello") {
-          LOBBY.peers = (d.peers || []).map((p) => ({ uid: p.uid, name: p.name, x: p.x, y: p.y }))
+          LOBBY.peers = (d.peers || []).map((p) => ({ uid: p.uid, name: p.name, x: p.x, y: p.y, dir: 3 }))
           if (LOBBY.peers.length) LOBBY.oppName = LOBBY.peers[0].name
           lobbyStatus()
           return
         }
         if (d.t === "peer") {
           if (!LOBBY.peers.some((p) => p.uid === d.uid)) {
-            LOBBY.peers.push({ uid: d.uid, name: d.name, x: d.x || 0.5, y: d.y || 0.5 })
+            LOBBY.peers.push({ uid: d.uid, name: d.name, x: d.x || 0.5, y: d.y || 0.5, dir: 3 })
             LOBBY.oppName = d.name
           }
           lobbyStatus()
@@ -8517,8 +8649,13 @@
         if (d.t === "pos") {
           const p = LOBBY.peers.find((q) => q.uid === d.uid)
           if (p) {
-            p.x = clamp(d.x == null ? p.x : d.x, 0, 1)
-            p.y = clamp(d.y == null ? p.y : d.y, 0, 1)
+            const nx = clamp(d.x == null ? p.x : d.x, 0, 1)
+            const ny = clamp(d.y == null ? p.y : d.y, 0, 1)
+            if (nx !== p.x || ny !== p.y) {
+              p.dir = nx > p.x ? 3 : nx < p.x ? 2 : ny < p.y ? 1 : 0
+              p.x = nx
+              p.y = ny
+            }
           }
           return
         }
@@ -8552,12 +8689,46 @@
           backToWorld()
         }
       }
+      const LOBBY_SPD = 5.2
+      function lobbyFree(tx, ty) {
+        if (tx < 1 || ty < 1 || tx >= OW.w - 1 || ty >= OW.h - 1) return false
+        return !OW.solid.has(Math.round(tx) + "," + Math.round(ty))
+      }
+      const PEER_HAIR = ["#3a3328", "#ffd23d", "#8b5a2b", "#2b2b33", "#e8e8e8", "#e84848"]
+      const PEER_SHIRT = ["#2f7fe0", "#21d07a", "#a85fd6", "#ff7a2e", "#e84848", "#3fc7d6", "#9bd14b"]
+      const PEER_PANTS = ["#2a3a52", "#04301a", "#4a2a63", "#2b2b33", "#5a3a1f"]
+      function peerCfg(uid) {
+        let h = 0
+        for (let i = 0; i < uid.length; i++) h = (h * 31 + uid.charCodeAt(i)) | 0
+        return {
+          hair: PEER_HAIR[h % PEER_HAIR.length],
+          shirt: PEER_SHIRT[(h >> 3) % PEER_SHIRT.length],
+          pants: PEER_PANTS[(h >> 5) % PEER_PANTS.length],
+          shoes: "#2b2b33",
+          paddle: "#ffd23d",
+        }
+      }
+      function nameTag(ctx, name, x, y) {
+        const txt = String(name || "")
+          .toUpperCase()
+          .slice(0, 12)
+        if (!txt) return
+        ctx.font = "8px 'Press Start 2P', monospace"
+        ctx.textAlign = "center"
+        ctx.fillStyle = "rgba(0,0,0,0.6)"
+        ctx.fillRect(x - (txt.length * 8) / 2 - 2, y - 28, txt.length * 8 + 4, 11)
+        ctx.fillStyle = "#fff"
+        ctx.fillText(txt, x, y - 20)
+      }
       function lobbyFrame(now) {
         if (!LOBBY) return
         LOBBY.raf = requestAnimationFrame(lobbyFrame)
         const dt = Math.min(0.04, LOBBY.lastT ? (now - LOBBY.lastT) / 1000 : 0.02)
         LOBBY.lastT = now
         lobbyMove(dt)
+        updateRoam(now)
+        ambUpdate(AMB_A, now)
+        ambUpdate(AMB_B, now)
         lobbyDraw(now)
       }
       function lobbyMove(dt) {
@@ -8569,37 +8740,53 @@
         if (OW.keys["arrowup"] || OW.keys["w"]) my = -1
         if (OW.keys["arrowleft"] || OW.keys["a"]) mx = -1
         if (OW.keys["arrowright"] || OW.keys["d"]) mx = 1
-        if (mx || my) {
-          const d = Math.hypot(mx, my)
-          const nx = clamp(you.x + (mx / d) * R_SPD * dt, 0.03, 0.97)
-          const ny = clamp(you.y + (my / d) * R_SPD * dt, 0.03, 0.97)
-          if (nx !== you.x || ny !== you.y) {
-            you.x = nx
-            you.y = ny
-            LOBBY.ws.send(JSON.stringify({ t: "pos", x: you.x, y: you.y }))
-          }
+        if (!mx && !my) {
+          LOBBY.moving = false
+          return
         }
+        LOBBY.moving = true
+        LOBBY.dir = mx === 0 ? (my === 1 ? 0 : 1) : mx === 1 ? 3 : 2
+        const d = Math.hypot(mx, my)
+        const step = (LOBBY_SPD * dt) / d
+        const ox = you.x
+        const oy = you.y
+        const nx = clamp(you.x + (mx * step) / OW.w, 0.025, 0.975)
+        const ny = clamp(you.y + (my * step) / OW.h, 0.02, 0.98)
+        if (lobbyFree(nx * OW.w, you.y * OW.h)) you.x = nx
+        if (lobbyFree(you.x * OW.w, ny * OW.h)) you.y = ny
+        if (you.x !== ox || you.y !== oy) {
+          LOBBY.moving = true
+          LOBBY.ws.send(JSON.stringify({ t: "pos", x: you.x, y: you.y }))
+        } else LOBBY.moving = false
       }
       function lobbyDraw(now) {
         if (!LOBBY) return
         const cv = $("lobby-canvas")
         const ctx = cv.getContext("2d")
-        ctx.clearRect(0, 0, cv.width, cv.height)
-        const CR = drawCourt(ctx, cv.width, cv.height, null)
-        const m = (q) => [CR.x + q[0] * CR.w, CR.y + q[1] * CR.h]
-        for (const p of LOBBY.peers) {
-          const pt = m([p.x, p.y])
-          drawPlayer(ctx, pt[0], pt[1], TEAM_PAL, 1, p.name, "cpu")
+        if (!OW.static) {
+          buildTerrain()
+          buildStatic()
         }
-        const u = m([LOBBY.you.x, LOBBY.you.y])
-        drawPlayer(ctx, u[0], u[1], SAVE.custom, -1, SAVE.name || "YOU", "you")
+        ctx.clearRect(0, 0, cv.width, cv.height)
+        drawOverworld(ctx, now, true)
+        const T = OW.t
+        const m = (q) => [q[0] * T + T / 2, q[1] * T + T / 2 + 6]
+        const phase = LOBBY.moving ? Math.floor(now / 250) % 2 : 0
+        for (const p of LOBBY.peers) {
+          const pt = m([p.x * OW.w, p.y * OW.h])
+          drawOwChar(ctx, pt[0], pt[1], p.dir, peerCfg(p.uid), Math.floor(now / 250) % 2)
+          nameTag(ctx, p.name, pt[0], pt[1])
+        }
+        const u = m([LOBBY.you.x * OW.w, LOBBY.you.y * OW.h])
+        drawOwChar(ctx, u[0], u[1], LOBBY.dir, SAVE.custom, phase)
+        nameTag(ctx, SAVE.name === "YOU" ? palName() : SAVE.name, u[0], u[1])
         if (LOBBY.peers.length) {
           const pulse = 0.35 + 0.25 * Math.abs(Math.sin(now / 700))
           ctx.strokeStyle = "rgba(255,210,61," + pulse.toFixed(2) + ")"
           ctx.lineWidth = 2
           ctx.setLineDash([4, 6])
           ctx.beginPath()
-          ctx.arc(u[0], u[1], R_HT * CR.w, 0, Math.PI * 2)
+          ctx.arc(u[0], u[1], 20, 0, Math.PI * 2)
           ctx.stroke()
           ctx.setLineDash([])
         }
@@ -8626,7 +8813,7 @@
         refreshMail(true)
         refreshChallenges()
         setInterval(refreshMail, 60000)
-        setInterval(refreshChallenges, 30000)
+        setInterval(refreshChallenges, 5000)
       }
     </script>
   </body>
