@@ -8367,8 +8367,8 @@
           PVP.flight = null
           PVP.wait = null
           PVP.sc = d.sc || PVP.sc
-          $("pvp-you").textContent = PVP.sc[0]
-          $("pvp-opp").textContent = PVP.sc[1]
+          $("pvp-you").textContent = PVP.sc[PVP.side]
+          $("pvp-opp").textContent = PVP.sc[1 - PVP.side]
           $("pvp-msg").textContent = d.reason + " - " + (d.winner === PVP.side ? "YOU SCORE!" : PVP.oppName + " SCORE!")
           PVP.phase = "point"
           return
@@ -8401,8 +8401,8 @@
         SAVE.coins += earned
         save()
         renderOwHud()
-        $("pvp-over-you").textContent = PVP.sc[0]
-        $("pvp-over-opp").textContent = PVP.sc[1]
+        $("pvp-over-you").textContent = PVP.sc[PVP.side]
+        $("pvp-over-opp").textContent = PVP.sc[1 - PVP.side]
         $("pvp-over-opp-lbl").textContent = PVP.oppName
         $("pvp-over-title").textContent = won ? "YOU WIN!" : "YOU LOSE"
         $("pvp-over-title").style.color = won ? "#21d07a" : "#e84848"
