@@ -71,6 +71,7 @@
         overflow: hidden;
         -webkit-font-smoothing: none;
         text-transform: uppercase;
+        touch-action: manipulation;
       }
       ::selection {
         background: var(--yellow);
@@ -694,6 +695,22 @@
         display: block;
         background: #0b1c34;
         border: 3px solid var(--ink-dark);
+        touch-action: none;
+      }
+      /* Live score is below the court, never over either player. */
+      #s-pvp .sb-overlay { position: static; transform: none; margin: 10px auto; max-width: 360px; }
+      #s-pvp .match-stage { display: flex; flex-direction: column; width: min(100%, 720px); }
+      #s-pvp #pvp-canvas { order: 1; max-height: min(62vh, 560px); object-fit: contain; }
+      #s-pvp .scoreboard { order: 2; }
+      #s-pvp .quiz-panel { order: 3; position: static; margin: 0 0 10px; }
+      #s-pvp .match-actions { order: 4; }
+      #lobby-play { position:absolute; left:50%; top:12px; transform:translateX(-50%); z-index:25; display:none; min-width:180px; }
+      .mail-row, .mail-row .mail-title, .mail-row .mail-sub, #letter-body { color: #000; }
+      @media (max-width: 600px) {
+        .screen.on { padding: max(8px, env(safe-area-inset-top)) max(8px, env(safe-area-inset-right)) max(8px, env(safe-area-inset-bottom)) max(8px, env(safe-area-inset-left)); }
+        #s-pvp .w-bar { font-size: 9px; }
+        #s-pvp .sb-overlay { max-width: 100%; margin: 7px auto; }
+        #s-pvp .match-actions .btn, #lobby-play { min-height: 44px; }
       }
       #pvp-over {
         position: absolute;
@@ -1787,6 +1804,7 @@
             <button class="btn dark" onclick="quitLobby()">LEAVE</button>
           </div>
           <canvas id="lobby-canvas" width="1280" height="768"></canvas>
+          <button id="lobby-play" class="btn green" onclick="lobbyChallenge()">PLAY 1V1</button>
           <div id="lobby-hint" class="q-note">WALK AROUND WITH YOUR PAL!</div>
           <div id="lobby-pals" class="text-small text-dim">MOVE WITH WASD / ARROWS</div>
         </div>
@@ -3213,6 +3231,15 @@
           }
         }
       }
+      const DEVICE = (() => {
+        const n = navigator, ua = String(n.userAgent || "")
+        const appleTouch = n.platform === "MacIntel" && n.maxTouchPoints > 1
+        if (/iPhone/i.test(ua) || (appleTouch && Math.min(innerWidth, innerHeight) < 600)) return "iphone"
+        if (/Win/i.test(n.platform || ua)) return "windows"
+        if (/Mac/i.test(n.platform || ua)) return "mac"
+        return "other"
+      })()
+      function resizeForDevice() { document.documentElement.dataset.device = DEVICE; fitMatch() }
       function show(id) {
         document.querySelectorAll(".screen").forEach((s) => s.classList.remove("on"))
         $(id).classList.add("on")
@@ -7796,33 +7823,20 @@
           msg.style.display = "block"
           return
         }
-        const list = loadFriends()
-        if (list.includes(code)) {
-          msg.textContent = "ALREADY ADDED"
-          msg.style.color = "#ffd23d"
-          msg.style.display = "block"
-          return
-        }
-        fetch(ONLINE_API + "/api/status?codes=" + code)
+        fetch(ONLINE_API + "/api/friends/request", {
+          method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ uid: getUid(), code }),
+        })
           .then((r) => {
             if (!r.ok) throw new Error("bad response")
             return r.json()
           })
           .then((d) => {
-            const p = d.players && d.players[0]
-            if (!p || !p.uid) {
-              msg.textContent = "CODE NOT FOUND — HAS THEM PLAYED ONLINE YET?"
-              msg.style.color = "#e84848"
-              msg.style.display = "block"
-              return
-            }
-            list.push(code)
-            saveFriends(list)
-            friendInfo[code] = { name: p.name || code }
+            if (!d || !d.ok) throw new Error((d && d.error) || "request failed")
             $(inputId).value = ""
-            msg.style.display = "none"
-            renderProfile()
-            renderFriendList()
+            msg.textContent = "FRIEND REQUEST SENT!"
+            msg.style.color = "#3fd6a5"
+            msg.style.display = "block"
+            refreshFriends()
           })
           .catch(() => {
             msg.textContent = "NETWORK ERROR — COULDN'T REACH SERVER"
@@ -7844,17 +7858,21 @@
       function refreshFriends() {
         try {
           if (typeof fetch !== "function") return
-          if (!$("s-profile").classList.contains("on")) return
-          const list = loadFriends()
-          if (!list.length) return
-          fetch(ONLINE_API + "/api/status?codes=" + list.join(","))
+          fetch(ONLINE_API + "/api/friends?uid=" + encodeURIComponent(getUid()))
             .then((r) => r.json())
             .then((d) => {
-              for (const p of d.players || []) {
+              if (!d || !d.ok) return
+              const list = []
+              for (const p of d.friends || []) {
+                if (!p.code) continue
+                list.push(p.code)
                 onlineMap[p.code] = !!p.online
                 if (p.name) friendInfo[p.code] = { name: p.name }
               }
+              saveFriends(list)
+              FRIEND_REQUESTS = d.requests || []
               renderProfile()
+              if ($("s-friends").classList.contains("on")) renderFriendScreen()
             })
             .catch(() => {})
         } catch (e) {}
@@ -7872,9 +7890,11 @@
 
       let MAIL = null
       let CHALS = []
+      let FRIEND_REQUESTS = []
       let INVITE = null
       const invitePopped = new Set()
       const joinedChals = new Set()
+      const sentChals = new Set()
 
       function badgeMail(n) {
         const b = $("badge-mail")
@@ -8090,17 +8110,11 @@
                   (pop.type === "duel" ? "A LIVE 1V1 RALLY!" : "WALK AROUND IN THE ACADEMY LOBBY!")
                 $("invite-modal").style.display = "flex"
               }
-              const acc = CHALS.find(
-                (c) => c.from === uid && c.status === "accepted" && c.matchId && !joinedChals.has(c.id),
-              )
-              if (acc) {
-                const live =
-                  acc.type === "duel" ? PVP && PVP.matchId === acc.matchId : LOBBY && LOBBY.matchId === acc.matchId
-                if (!live) {
-                  joinedChals.add(acc.id)
-                  if (acc.type === "duel") openPvp(acc.matchId, acc.toName || "OPPONENT")
-                  else openLobby(acc.matchId, acc.toName || "PAL")
-                }
+              const acc = CHALS.find((c) => c.from === uid && c.status === "accepted" && c.matchId && sentChals.has(c.id))
+              if (acc && !joinedChals.has(acc.id)) {
+                joinedChals.add(acc.id)
+                if (acc.type === "duel") openPvp(acc.matchId, acc.toName || "OPPONENT")
+                else openLobby(acc.matchId, acc.toName || "PAL")
               }
             })
             .catch(() => {})
@@ -8202,10 +8216,9 @@
                 .then((r) => r.json())
                 .then((d2) => {
                   if (d2 && d2.ok && d2.matchId) {
-                    joinedChals.add(d2.id)
+                    sentChals.add(d2.id)
                     if (type === "duel") {
-                      toast("CHALLENGE SENT! JOINING MATCH...")
-                      openPvp(d2.matchId, p.name)
+                      toast("1V1 REQUEST SENT — WAIT FOR ACCEPTANCE")
                     } else {
                       toast("LOBBY INVITE SENT! JOINING LOBBY...")
                       openLobby(d2.matchId, p.name)
@@ -8663,6 +8676,12 @@
         if (d.t === "left") {
           LOBBY.peers = LOBBY.peers.filter((p) => p.uid !== d.uid)
           lobbyStatus()
+          return
+        }
+        if (d.t === "court") {
+          LOBBY.courtReady = !!d.ready
+          $("lobby-play").style.display = LOBBY.courtReady ? "block" : "none"
+          if (LOBBY.courtReady) $("lobby-hint").textContent = "BOTH PALS ARE ON COURT — PLAY 1V1!"
         }
       }
       function lobbyStatus() {
@@ -8677,6 +8696,7 @@
         try {
           if (LOBBY.ws && LOBBY.ws.readyState <= 1) LOBBY.ws.close()
         } catch (e) {}
+        $("lobby-play").style.display = "none"
         LOBBY = null
       }
       function closeLobby() {
@@ -8793,6 +8813,12 @@
           ctx.setLineDash([])
         }
       }
+      function lobbyChallenge() {
+        if (!LOBBY || !LOBBY.courtReady || !LOBBY.peers.length) return
+        const peer = LOBBY.peers[0]
+        fetch(ONLINE_API + "/api/challenge", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ from: getUid(), fromName: palName(), fromCode: getCode(), to: peer.uid, toName: peer.name, type: "duel" }) })
+          .then((r) => r.json()).then((d) => { if (d && d.ok) { sentChals.add(d.id); toast("1V1 REQUEST SENT — WAIT FOR ACCEPTANCE") } else toast("COULDN'T START 1V1") }).catch(() => toast("NETWORK ERROR"))
+      }
 
       let autosaved = false
       function autosave() {
@@ -8803,6 +8829,9 @@
       if (typeof window !== "undefined" && window.addEventListener) {
         window.addEventListener("beforeunload", save)
         window.addEventListener("pagehide", save)
+        window.addEventListener("resize", resizeForDevice)
+        window.addEventListener("orientationchange", resizeForDevice)
+        window.addEventListener("keydown", (e) => { if (e.key === "Enter" && LOBBY && LOBBY.courtReady) lobbyChallenge() })
         document.addEventListener("visibilitychange", () => {
           if (document.hidden) save()
         })
