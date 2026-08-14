@@ -705,7 +705,7 @@
       #s-pvp .quiz-panel { order: 3; position: static; margin: 0 0 10px; }
       #s-pvp .match-actions { order: 4; }
       #lobby-play { position:absolute; left:50%; top:12px; transform:translateX(-50%); z-index:25; display:none; min-width:180px; }
-      #mobile-controls { display:none; position:fixed; left:max(14px, env(safe-area-inset-left)); bottom:max(14px, env(safe-area-inset-bottom)); z-index:80; width:128px; height:128px; touch-action:none; user-select:none; }
+      #mobile-controls { display:none; position:fixed; right:max(14px, env(safe-area-inset-right)); bottom:max(14px, env(safe-area-inset-bottom)); z-index:80; width:128px; height:128px; touch-action:none; user-select:none; }
       #mobile-controls.active { display:block; }
       #joy-base { position:absolute; inset:0; border:3px solid rgba(255,255,255,.72); border-radius:50%; background:rgba(5,18,12,.42); box-shadow:0 3px 0 rgba(0,0,0,.45); }
       #joy-stick { position:absolute; width:52px; height:52px; left:38px; top:38px; border:3px solid var(--ink-dark); border-radius:50%; background:var(--green2); box-shadow:0 3px 0 rgba(0,0,0,.45); pointer-events:none; }
@@ -713,9 +713,11 @@
       @media (max-width: 600px) {
         .screen.on { padding: max(8px, env(safe-area-inset-top)) max(8px, env(safe-area-inset-right)) max(8px, env(safe-area-inset-bottom)) max(8px, env(safe-area-inset-left)); }
         #s-overworld, #s-lobby { padding: 0; }
-        #ow-hud { top:8px; left:8px; padding:6px 8px; font-size:7px; line-height:1.7; }
-        #ow-social { top:8px; right:8px; gap:5px; }
-        .soc-btn { font-size:7px; padding:7px 8px; }
+        #ow-hud { top:7px; left:7px; padding:4px 5px; font-size:6px; line-height:1.55; border-width:2px; box-shadow:2px 2px 0 rgba(0,0,0,.5); }
+        #ow-hud .btn.mini { font-size:6px; padding:4px 5px; margin-top:4px; border-width:2px; box-shadow:2px 2px 0 rgba(0,0,0,.5); }
+        #ow-social { top:7px; right:7px; gap:4px; }
+        .soc-btn { font-size:6px; padding:5px 6px; border-width:2px; box-shadow:2px 2px 0 #0a1220; }
+        .soc-btn .badge { min-width:13px; height:13px; line-height:13px; font-size:6px; top:-6px; right:-6px; border-width:1px; }
         #ow-hint, #lobby-pals { display:none; }
         #lobby-hud { top:8px; right:8px; gap:5px; }
         #lobby-status { font-size:7px; padding:6px 8px; max-width:175px; }
@@ -3258,7 +3260,7 @@
         document.querySelectorAll(".screen").forEach((s) => s.classList.remove("on"))
         $(id).classList.add("on")
         const joystick = $("mobile-controls")
-        if (joystick) joystick.classList.toggle("active", MOBILE_JOYSTICK && (id === "s-overworld" || id === "s-lobby"))
+        if (joystick) joystick.classList.toggle("active", MOBILE_JOYSTICK && id === "s-lobby")
         if (id === "s-game" || id === "s-rally" || id === "s-pvp") {
           requestAnimationFrame(fitMatch)
         }
