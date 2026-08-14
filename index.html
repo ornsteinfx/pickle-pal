@@ -705,9 +705,21 @@
       #s-pvp .quiz-panel { order: 3; position: static; margin: 0 0 10px; }
       #s-pvp .match-actions { order: 4; }
       #lobby-play { position:absolute; left:50%; top:12px; transform:translateX(-50%); z-index:25; display:none; min-width:180px; }
+      #mobile-controls { display:none; position:fixed; left:max(14px, env(safe-area-inset-left)); bottom:max(14px, env(safe-area-inset-bottom)); z-index:80; width:128px; height:128px; touch-action:none; user-select:none; }
+      #mobile-controls.active { display:block; }
+      #joy-base { position:absolute; inset:0; border:3px solid rgba(255,255,255,.72); border-radius:50%; background:rgba(5,18,12,.42); box-shadow:0 3px 0 rgba(0,0,0,.45); }
+      #joy-stick { position:absolute; width:52px; height:52px; left:38px; top:38px; border:3px solid var(--ink-dark); border-radius:50%; background:var(--green2); box-shadow:0 3px 0 rgba(0,0,0,.45); pointer-events:none; }
       .mail-row, .mail-row .mail-title, .mail-row .mail-sub, #letter-body { color: #000; }
       @media (max-width: 600px) {
         .screen.on { padding: max(8px, env(safe-area-inset-top)) max(8px, env(safe-area-inset-right)) max(8px, env(safe-area-inset-bottom)) max(8px, env(safe-area-inset-left)); }
+        #s-overworld, #s-lobby { padding: 0; }
+        #ow-hud { top:8px; left:8px; padding:6px 8px; font-size:7px; line-height:1.7; }
+        #ow-social { top:8px; right:8px; gap:5px; }
+        .soc-btn { font-size:7px; padding:7px 8px; }
+        #ow-hint, #lobby-pals { display:none; }
+        #lobby-hud { top:8px; right:8px; gap:5px; }
+        #lobby-status { font-size:7px; padding:6px 8px; max-width:175px; }
+        #lobby-hint { bottom:8px; max-width:72%; font-size:7px; padding:6px 8px; text-align:center; }
         #s-pvp .w-bar { font-size: 9px; }
         #s-pvp .sb-overlay { max-width: 100%; margin: 7px auto; }
         #s-pvp .match-actions .btn, #lobby-play { min-height: 44px; }
@@ -1830,6 +1842,7 @@
         </div>
       </section>
     </div>
+    <div id="mobile-controls" aria-label="Movement joystick"><div id="joy-base"></div><div id="joy-stick"></div></div>
 
     <div id="vs-splash">
       <div class="vsub" id="vsub">CHALLENGE COURT</div>
@@ -3239,10 +3252,13 @@
         if (/Mac/i.test(n.platform || ua)) return "mac"
         return "other"
       })()
-      function resizeForDevice() { document.documentElement.dataset.device = DEVICE; fitMatch() }
+      const MOBILE_JOYSTICK = DEVICE === "iphone" || (navigator.maxTouchPoints > 0 && Math.min(innerWidth, innerHeight) <= 700)
+      function resizeForDevice() { document.documentElement.dataset.device = DEVICE; document.documentElement.classList.toggle("mobile-device", MOBILE_JOYSTICK); fitMatch() }
       function show(id) {
         document.querySelectorAll(".screen").forEach((s) => s.classList.remove("on"))
         $(id).classList.add("on")
+        const joystick = $("mobile-controls")
+        if (joystick) joystick.classList.toggle("active", MOBILE_JOYSTICK && (id === "s-overworld" || id === "s-lobby"))
         if (id === "s-game" || id === "s-rally" || id === "s-pvp") {
           requestAnimationFrame(fitMatch)
         }
@@ -7615,6 +7631,25 @@
       $("s-overworld").addEventListener("click", (e) => {
         if (OW.dialog && !e.target.closest("#ow-dialog")) advanceDialog()
       })
+      ;(() => {
+        const joy = $("mobile-controls"), stick = $("joy-stick")
+        if (!joy || !stick) return
+        let pointer = null
+        const reset = () => { pointer = null; OW.keys.arrowup = OW.keys.arrowdown = OW.keys.arrowleft = OW.keys.arrowright = false; stick.style.transform = "translate(0,0)" }
+        const move = (e) => {
+          if (pointer !== e.pointerId) return
+          const r = joy.getBoundingClientRect(), cx = r.left + r.width / 2, cy = r.top + r.height / 2
+          let x = e.clientX - cx, y = e.clientY - cy, d = Math.hypot(x, y), max = 34
+          if (d > max) { x = x / d * max; y = y / d * max }
+          stick.style.transform = "translate(" + x + "px," + y + "px)"
+          OW.keys.arrowup = y < -10; OW.keys.arrowdown = y > 10; OW.keys.arrowleft = x < -10; OW.keys.arrowright = x > 10
+          e.preventDefault()
+        }
+        joy.addEventListener("pointerdown", (e) => { pointer = e.pointerId; joy.setPointerCapture(e.pointerId); move(e) })
+        joy.addEventListener("pointermove", move)
+        joy.addEventListener("pointerup", reset)
+        joy.addEventListener("pointercancel", reset)
+      })()
 
       let lastT = performance.now()
       function loop(now) {
