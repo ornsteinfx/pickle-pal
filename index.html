@@ -7281,7 +7281,7 @@
         $("rally-msg").textContent = hint
       }
 
-      $("rally-canvas").addEventListener("mousemove", (e) => {
+      $("rally-canvas").addEventListener("pointermove", (e) => {
         const rect = $("rally-canvas").getBoundingClientRect()
         if (!R.lastCourt || !rect.width) return
         const sx = $("rally-canvas").width / rect.width
@@ -7293,7 +7293,7 @@
           y: clamp((y - R.lastCourt.y) / R.lastCourt.h, 0, 1),
         }
       })
-      $("rally-canvas").addEventListener("mousedown", (e) => {
+      $("rally-canvas").addEventListener("pointerdown", (e) => {
         if (R.phase === "over") return
         e.preventDefault()
         R.charging = true
@@ -7785,7 +7785,7 @@
               '<div class="friend-row"><span class="dot ' +
               (on ? "on" : "off") +
               '"></span><span class="friend-name">' +
-              name +
+              esc(name) +
               '</span><span class="friend-code">' +
               fmtCode(c) +
               '</span><button class="friend-x" onclick="removeFriend(\'' +
@@ -7851,9 +7851,9 @@
         addFriendBy("fr-add", "fr-msg")
       }
       function removeFriend(code) {
-        saveFriends(loadFriends().filter((c) => c !== code))
-        renderProfile()
-        renderFriendList()
+        fetch(ONLINE_API + "/api/friends/remove", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ uid: getUid(), code }) })
+          .then((r) => r.json()).then((d) => { if (d && d.ok) { saveFriends(loadFriends().filter((c) => c !== code)); refreshFriends() } else toast("COULDN'T REMOVE FRIEND") })
+          .catch(() => toast("NETWORK ERROR"))
       }
       function refreshFriends() {
         try {
@@ -8124,11 +8124,18 @@
         const box = $("fr-invites")
         const uid = getUid()
         const pending = CHALS.filter((c) => c.to === uid && c.status === "pending")
-        if (!pending.length) {
+        const friendPending = FRIEND_REQUESTS || []
+        if (!pending.length && !friendPending.length) {
           box.textContent = "NO INVITES. SEND A 1V1 FROM A FRIEND'S ROW."
           return
         }
         box.innerHTML = ""
+        for (const r of friendPending) {
+          const row = document.createElement("div")
+          row.className = "invite-row"
+          row.innerHTML = '<span class="inv-type">FRIEND</span><span class="inv-name">' + esc(r.fromName || r.from || "PAL") + '</span><span class="inv-actions"><button class="ok" onclick="respondFriendRequest(' + Number(r.id) + ', true)">ACCEPT</button><button class="no" onclick="respondFriendRequest(' + Number(r.id) + ', false)">DECLINE</button></span>'
+          box.appendChild(row)
+        }
         for (const c of pending) {
           const row = document.createElement("div")
           row.className = "invite-row"
@@ -8148,6 +8155,12 @@
             ', false)">DECLINE</button></span>'
           box.appendChild(row)
         }
+      }
+      function respondFriendRequest(id, accept) {
+        fetch(ONLINE_API + "/api/friends/respond", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ uid: getUid(), id, accept }) })
+          .then((r) => r.json())
+          .then((d) => { if (d && d.ok) { toast(accept ? "FRIEND ADDED!" : "REQUEST DECLINED"); refreshFriends() } else toast("COULDN'T UPDATE REQUEST") })
+          .catch(() => toast("NETWORK ERROR"))
       }
       function respondChallenge(id, accept) {
         const uid = getUid()

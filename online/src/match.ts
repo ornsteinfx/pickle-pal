@@ -18,6 +18,7 @@ interface Player {
   side: number
   px: number
   py: number
+  lastMove: number
 }
 
 const R_HT = 0.16
@@ -89,7 +90,7 @@ export class MatchRoom extends DurableObject {
           this.send(ws, { t: "err", msg: "MATCH FULL", n: now })
           return
         }
-        p = { ws, uid: d.uid || "", name: (d.name || "PAL").slice(0, 12), side: this.players.length, px: 0.5, py: 0.5 }
+        p = { ws, uid: d.uid || "", name: (d.name || "PAL").slice(0, 12), side: this.players.length, px: 0.5, py: 0.5, lastMove: now }
         this.players.push(p)
         newly = true
       } else {
@@ -109,8 +110,14 @@ export class MatchRoom extends DurableObject {
     const p = this.find(ws)
     if (!p) return
     if (d.t === "pos") {
-      p.px = clamp(d.x == null ? p.px : d.x, 0, 1)
-      p.py = clamp(d.y == null ? p.py : d.y, 0, 1)
+      const maxStep = 0.012 + Math.min(0.08, Math.max(0, now - p.lastMove) / 1000 * 0.34)
+      const lo = p.side === 0 ? 0.52 : 0.03
+      const hi = p.side === 0 ? 0.97 : 0.48
+      const nx = clamp(d.x == null ? p.px : d.x, 0.03, 0.97)
+      const ny = clamp(d.y == null ? p.py : d.y, lo, hi)
+      const dx = nx - p.px, dy = ny - p.py, distance = Math.hypot(dx, dy)
+      if (distance <= maxStep) { p.px = nx; p.py = ny }
+      p.lastMove = now
       const opp = this.other(p)
       if (opp) this.send(opp.ws, { t: "opp", x: p.px, y: p.py, n: now })
       this.tick(now)
@@ -337,6 +344,7 @@ export class LobbyRoom extends DurableObject {
     }
     const p = this.players.find((q) => q.ws === ws)
     if (d.t === "join") {
+      if (!p && this.players.length >= 2) { this.send(ws, { t: "err", msg: "LOBBY FULL" }); return }
       const np = p || {
         ws,
         uid: d.uid || "",
@@ -374,4 +382,3 @@ export class LobbyRoom extends DurableObject {
     this.announceCourt()
   }
 }
-

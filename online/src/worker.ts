@@ -146,6 +146,17 @@ export default {
       return r
     }
 
+    if (method === "POST" && url.pathname === "/api/friends/remove") {
+      let body: { uid?: string; code?: string } = {}
+      try { body = await req.json() } catch {}
+      const uid = String(body.uid || "")
+      const code = String(body.code || "").toUpperCase()
+      if (!uid || !/^[0-9A-Z]{6}$/.test(code)) return json({ ok: false, error: "bad request" }, 400)
+      const r = json(await room(env).removeFriend(uid, code))
+      cors(r.headers)
+      return r
+    }
+
     if (method === "POST" && url.pathname === "/api/mail/claim") {
       let body: { uid?: string } = {}
       try {
@@ -392,4 +403,3 @@ function indexPage(count: number, registered: number): string {
 </body>
 </html>`
 }
-
