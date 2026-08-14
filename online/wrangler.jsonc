@@ -1,0 +1,40 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "pickle-pal-online",
+  "main": "src/worker.ts",
+  "compatibility_date": "2025-06-01",
+  "durable_objects": {
+    "bindings": [
+      {
+        "name": "PAL_ROOM",
+        "class_name": "PresenceRoom",
+      },
+      {
+        "name": "MATCH_ROOM",
+        "class_name": "MatchRoom",
+      },
+      {
+        "name": "LOBBY_ROOM",
+        "class_name": "LobbyRoom",
+      },
+    ],
+  },
+  "migrations": [
+    {
+      "tag": "v1",
+      "new_sqlite_classes": ["PresenceRoom"],
+    },
+    {
+      "tag": "v2",
+      "new_sqlite_classes": ["MatchRoom"],
+    },
+    {
+      "tag": "v3",
+      "new_sqlite_classes": ["LobbyRoom"],
+    },
+  ],
+  "observability": {
+    "enabled": true,
+  },
+}
+
