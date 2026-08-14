@@ -199,7 +199,7 @@ export class PresenceRoom extends DurableObject {
 
   async listFriendRequests(uid: string) {
     await this.load()
-    return this.friendRequests.filter((r) => r.to === uid && r.status === "pending").slice().reverse()
+    return this.friendRequests.filter((r) => r.to === uid && r.status === "pending").slice().reverse().map((r) => ({ ...r, fromName: this.players.get(r.from)?.name || "PAL" }))
   }
 
   async sendFriendRequest(from: string, toCode: string) {
@@ -229,6 +229,16 @@ export class PresenceRoom extends DurableObject {
       this.friends.set(request.from, [...a])
       this.friends.set(request.to, [...b])
     }
+    await this.saveFriends()
+    return { ok: true }
+  }
+
+  async removeFriend(uid: string, code: string) {
+    await this.load()
+    const other = this.codes.get(code)
+    if (!other) return { ok: false, error: "friend not found" }
+    this.friends.set(uid, (this.friends.get(uid) || []).filter((id) => id !== other))
+    this.friends.set(other, (this.friends.get(other) || []).filter((id) => id !== uid))
     await this.saveFriends()
     return { ok: true }
   }
@@ -399,4 +409,3 @@ export class PresenceRoom extends DurableObject {
     await this.schedule()
   }
 }
-
