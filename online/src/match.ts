@@ -90,7 +90,11 @@ export class MatchRoom extends DurableObject {
           this.send(ws, { t: "err", msg: "MATCH FULL", n: now })
           return
         }
-        p = { ws, uid: d.uid || "", name: (d.name || "PAL").slice(0, 12), side: this.players.length, px: 0.5, py: 0.5, lastMove: now }
+        const side = this.players.length
+        // Start each player on the same half of the court their client uses.
+        // Starting at mid-court made the first position update fail the movement
+        // validation, leaving the server unable to register a legitimate hit.
+        p = { ws, uid: d.uid || "", name: (d.name || "PAL").slice(0, 12), side, px: 0.5, py: side === 0 ? 0.85 : 0.15, lastMove: now }
         this.players.push(p)
         newly = true
       } else {
@@ -98,7 +102,7 @@ export class MatchRoom extends DurableObject {
         if (d.name) p.name = d.name.slice(0, 12)
       }
       const opp = this.other(p)
-      this.send(ws, { t: "hello", side: p.side, name: p.name, opp: opp ? opp.name : "WAITING FOR OPPONENT...", n: now })
+      this.send(ws, { t: "hello", side: p.side, name: p.name, x: p.px, y: p.py, opp: opp ? opp.name : "WAITING FOR OPPONENT...", n: now })
       if (newly && opp) {
         this.send(opp.ws, { t: "peer", state: "joined", name: p.name, n: now })
         this.start()
