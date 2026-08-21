@@ -8376,6 +8376,10 @@
         if (!PVP || !d) return
         if (d.t === "hello") {
           PVP.side = d.side
+          // Keep the visible player and the authoritative match server in sync
+          // before the first movement or hit input.
+          PVP.you = { x: d.x == null ? 0.5 : d.x, y: d.y == null ? (PVP.side === 0 ? 0.85 : 0.15) : d.y }
+          PVP.opp = { x: 0.5, y: PVP.side === 0 ? 0.15 : 0.85 }
           if (d.opp && String(d.opp).indexOf("WAITING") === 0) {
             $("pvp-status").textContent = "WAITING FOR OPPONENT..."
             $("pvp-msg").textContent = "SHARE YOUR CODE AND WAIT FOR A FRIEND TO ACCEPT."
