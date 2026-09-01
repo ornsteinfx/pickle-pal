@@ -709,7 +709,10 @@
       #mobile-controls.active { display:block; }
       #joy-base { position:absolute; inset:0; border:3px solid rgba(255,255,255,.72); border-radius:50%; background:rgba(5,18,12,.42); box-shadow:0 3px 0 rgba(0,0,0,.45); }
       #joy-stick { position:absolute; width:52px; height:52px; left:38px; top:38px; border:3px solid var(--ink-dark); border-radius:50%; background:var(--green2); box-shadow:0 3px 0 rgba(0,0,0,.45); pointer-events:none; }
-      .mail-row, .mail-row .mail-title, .mail-row .mail-sub, #letter-body { color: #000; }
+      /* Inbox rows sit on a dark blue background; opened letters stay black on paper. */
+      .mail-row, .mail-row .mail-title { color: #fff; }
+      .mail-row .mail-sub { color: #cfe8ff; }
+      #letter-body { color: #000; }
       @media (max-width: 600px) {
         .screen.on { padding: max(8px, env(safe-area-inset-top)) max(8px, env(safe-area-inset-right)) max(8px, env(safe-area-inset-bottom)) max(8px, env(safe-area-inset-left)); }
         #s-overworld, #s-lobby { padding: 0; }
