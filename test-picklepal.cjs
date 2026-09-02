@@ -1,6 +1,6 @@
 const fs = require("fs")
 const html = fs.readFileSync("index.html", "utf8")
-let script = html.match(/<script>([\s\S]*)<\/script>/)[1]
+let script = [...html.matchAll(/<script>([\s\S]*?)<\/script>/g)].at(-1)[1]
 
 function makeEl(id) {
   return {
