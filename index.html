@@ -1241,6 +1241,7 @@
         position: absolute;
         inset: 0;
         cursor: crosshair;
+        touch-action: none;
         display: block;
         width: 100%;
         height: 100%;
@@ -6806,6 +6807,7 @@
         trail: [],
         aim: { x: 0.5, y: 0.35 },
         charging: false,
+        chargePointerId: null,
         charge: 0,
         chargeDir: 1,
         serve: true,
@@ -6908,6 +6910,7 @@
         R.aim = { x: 0.5, y: 0.35 }
         R.charge = 0
         R.charging = false
+        R.chargePointerId = null
         R.rally = 0
         R.returner = null
         R.palWindup = 0
@@ -7322,18 +7325,28 @@
           y: clamp((y - R.lastCourt.y) / R.lastCourt.h, 0, 1),
         }
       })
+      function rallyRelease(e) {
+        if (!R.charging) return
+        if (e && e.pointerId != null && R.chargePointerId != null && e.pointerId !== R.chargePointerId) return
+        R.charging = false
+        R.chargePointerId = null
+        rallyPlayerHit()
+      }
       $("rally-canvas").addEventListener("pointerdown", (e) => {
         if (R.phase === "over") return
         e.preventDefault()
+        R.chargePointerId = e.pointerId == null ? null : e.pointerId
+        if (e.currentTarget && typeof e.currentTarget.setPointerCapture === "function" && e.pointerId != null) {
+          e.currentTarget.setPointerCapture(e.pointerId)
+        }
         R.charging = true
         R.charge = 0
         R.chargeDir = 1
       })
-      document.addEventListener("mouseup", () => {
-        if (!R.charging) return
-        R.charging = false
-        rallyPlayerHit()
-      })
+      $("rally-canvas").addEventListener("pointerup", rallyRelease)
+      $("rally-canvas").addEventListener("pointercancel", rallyRelease)
+      document.addEventListener("mouseup", rallyRelease)
+      if (typeof window !== "undefined" && window.addEventListener) window.addEventListener("blur", rallyRelease)
 
       /* ================= TITLE ================= */
 
